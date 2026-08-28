@@ -15,7 +15,19 @@ const apiClient = axios.create({
   timeout: 45000, // 45s timeout to handle Render free-tier cold starts
 });
 
-// Automatic response interceptor to handle 401 Unauthorized globally
+// Automatic REQUEST interceptor: attach Authorization header dynamically on EVERY request
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('campusai_token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Automatic RESPONSE interceptor: handle 401 Unauthorized globally
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {

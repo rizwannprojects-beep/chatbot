@@ -131,7 +131,11 @@ export default function ChatPage() {
       }]);
       fetchConvs();
     } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to get a response. Please try again.');
+      if (err.response?.status === 401) {
+        setError('Session expired or not authenticated. Please sign in again.');
+      } else {
+        setError(err.response?.data?.detail || 'Failed to get a response. Please try again.');
+      }
     } finally { setIsLoading(false); }
   };
 

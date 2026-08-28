@@ -27,7 +27,12 @@ async def register(payload: UserRegister):
         role=payload.role or "student"
     )
     
-    access_token = create_access_token(data={"sub": user_record["id"], "role": user_record["role"]})
+    access_token = create_access_token(data={
+        "sub": user_record["id"],
+        "email": user_record["email"],
+        "name": user_record["name"],
+        "role": user_record["role"]
+    })
     
     user_response = UserResponse(**user_record)
     return TokenResponse(access_token=access_token, token_type="bearer", user=user_response)
@@ -53,7 +58,12 @@ async def login(payload: UserLogin):
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    access_token = create_access_token(data={"sub": user_record["id"], "role": user_record["role"]})
+    access_token = create_access_token(data={
+        "sub": user_record["id"],
+        "email": user_record["email"],
+        "name": user_record["name"],
+        "role": user_record["role"]
+    })
     user_response = UserResponse(**user_record)
     
     return TokenResponse(access_token=access_token, token_type="bearer", user=user_response)

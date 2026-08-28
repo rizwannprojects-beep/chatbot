@@ -6,56 +6,69 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('campusai_token') || null);
+  const [token, setToken] = useState(() => localStorage.getItem('campusai_token') || null);
   const [loading, setLoading] = useState(true);
 
-  // Set default authorization header whenever token changes
-  useEffect(() => {
-    if (token) {
-      apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      localStorage.setItem('campusai_token', token);
+  // Synchronously update Axios authorization header and localStorage whenever token state changes
+  const updateToken = (newToken) => {
+    if (newToken) {
+      apiClient.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+      localStorage.setItem('campusai_token', newToken);
     } else {
       delete apiClient.defaults.headers.common['Authorization'];
       localStorage.removeItem('campusai_token');
     }
-  }, [token]);
+    setToken(newToken);
+  };
 
-  // Load user profile on mount if token exists
+  // Initialize session on mount
   useEffect(() => {
-    const initAuth = async () => {
-      if (token) {
-        try {
-          const userData = await authService.getMe();
+    const savedToken = localStorage.getItem('campusai_token');
+    if (savedToken) {
+      apiClient.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`;
+      authService.getMe()
+        .then((userData) => {
           setUser(userData);
-        } catch (error) {
-          console.error('Failed to authenticate session token:', error);
-          setToken(null);
-          setUser(null);
-        }
-      }
+          setLoading(false);
+        })
+        .catch((error) => {
+          console.warn('Session profile check outcome:', error?.response?.status || error.message);
+          // ONLY clear session if server explicitly rejects token with 401 Unauthorized.
+          // DO NOT clear session on cold-start timeouts, 502/503 gateway errors, or network glitches.
+          if (error.response && error.response.status === 401) {
+            delete apiClient.defaults.headers.common['Authorization'];
+            localStorage.removeItem('campusai_token');
+            setToken(null);
+            setUser(null);
+          }
+          setLoading(false);
+        });
+    } else {
       setLoading(false);
-    };
-
-    initAuth();
-  }, [token]);
+    }
+  }, []);
 
   const login = async (email, password) => {
     const data = await authService.login({ email, password });
-    setToken(data.access_token);
+    updateToken(data.access_token);
     setUser(data.user);
     return data;
   };
 
   const register = async (name, email, password, role = 'student') => {
     const data = await authService.register({ name, email, password, role });
-    setToken(data.access_token);
+    updateToken(data.access_token);
     setUser(data.user);
     return data;
   };
 
   const logout = async () => {
-    await authService.logout();
-    setToken(null);
+    try {
+      await authService.logout();
+    } catch {
+      // Ignore network errors during logout
+    }
+    updateToken(null);
     setUser(null);
   };
 

@@ -9,6 +9,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserResponse:
     """
     Extracts and validates JWT token, returning the authenticated user profile.
+    Guarantees user presence in local database to satisfy foreign key constraints.
     """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -26,7 +27,22 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserResponse:
         
     user_data = get_user_by_id(user_id)
     if user_data is None:
-        raise credentials_exception
+        # Self-healing: provision user in local database from valid JWT payload claims
+        email = payload.get("email", f"user_{user_id[:8]}@campusai.local")
+        role = payload.get("role", "student")
+        name = payload.get("name", "Campus Student")
+        from app.database.users_db import ensure_user_in_sqlite
+        ensure_user_in_sqlite(user_id=user_id, name=name, email=email, role=role)
+        user_data = get_user_by_id(user_id)
+        if user_data is None:
+            user_data = {
+                "id": user_id,
+                "name": name,
+                "email": email,
+                "role": role,
+                "created_at": "",
+                "updated_at": ""
+            }
         
     return UserResponse(**user_data)
 

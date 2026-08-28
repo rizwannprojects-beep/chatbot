@@ -52,8 +52,9 @@ def _reset_client() -> httpx.Client:
 # Ordered model fallback chain — valid active Google AI models
 _MODELS_TO_TRY = [
     GEMINI_MODEL,
-    "gemini-1.5-flash",
-    "gemini-1.5-pro",
+    "gemini-2.5-flash",
+    "gemini-1.5-flash-latest",
+    "gemini-1.5-pro-latest",
 ]
 
 # Connection-level errors that require client recreation

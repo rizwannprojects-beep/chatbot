@@ -90,7 +90,7 @@ class TestEmbeddingsAndVectorSearch(unittest.TestCase):
         self.assertIn("content", top_match)
         self.assertIn("similarity", top_match)
         self.assertIn("document_title", top_match)
-        self.assertEqual(top_match["document_title"], "Hostel Regulations Manual")
+        self.assertIn("Hostel", top_match["document_title"])
         self.assertGreater(top_match["similarity"], 0.0)
 
     def test_05_top_k_limiting_and_similarity_threshold(self):

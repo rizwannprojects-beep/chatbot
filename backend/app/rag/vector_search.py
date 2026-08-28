@@ -95,6 +95,21 @@ def invalidate_vector_cache() -> None:
     _SEARCH_RESULT_CACHE = {}
     logger.info("Vector cache invalidated — will reload on next search.")
 
+def cosine_similarity(v1: List[float], v2: List[float]) -> float:
+    """
+    Calculates cosine similarity score between two float vectors.
+    Returns float value between 0.0 and 1.0.
+    """
+    if not v1 or not v2 or len(v1) != len(v2):
+        return 0.0
+    dot_product = sum(a * b for a, b in zip(v1, v2))
+    mag1 = math.sqrt(sum(a * a for a in v1))
+    mag2 = math.sqrt(sum(b * b for b in v2))
+    if mag1 == 0 or mag2 == 0:
+        return 0.0
+    similarity = dot_product / (mag1 * mag2)
+    return max(0.0, min(1.0, float(similarity)))
+
 def _fast_cosine(query_vec: List[float], query_mag: float, chunk: Dict) -> float:
     """
     Fast cosine similarity using pre-computed chunk magnitude.

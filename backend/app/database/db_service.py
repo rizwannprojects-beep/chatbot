@@ -373,6 +373,10 @@ def create_conversation(user_id: str, title: str = "New Chat") -> Dict[str, Any]
         except Exception as e:
             logger.warning(f"Supabase conversation create failed ({e}); using local database.")
 
+    # Guarantee user record exists in SQLite before conversation insert (prevents FK IntegrityError)
+    from app.database.users_db import ensure_user_in_sqlite
+    ensure_user_in_sqlite(user_id)
+
     conn = sqlite3.connect(LOCAL_DB_PATH, timeout=20.0)
     conn.execute("PRAGMA foreign_keys = ON;")
     cursor = conn.cursor()

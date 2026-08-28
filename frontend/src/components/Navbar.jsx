@@ -15,11 +15,34 @@ export default function Navbar() {
   const { theme, toggleTheme, isDark } = useTheme();
   const [backendHealth, setBackendHealth] = useState(null);
   const [checking, setChecking] = useState(true);
+  const [isWaking, setIsWaking] = useState(false);
 
   useEffect(() => {
-    apiClient.get('/health')
-      .then(res => { setBackendHealth(res.data); setChecking(false); })
-      .catch(() => { setBackendHealth(null); setChecking(false); });
+    let timer;
+    let attempts = 0;
+
+    const checkHealth = () => {
+      apiClient.get('/health')
+        .then(res => {
+          setBackendHealth(res.data);
+          setChecking(false);
+          setIsWaking(false);
+        })
+        .catch(() => {
+          attempts += 1;
+          if (attempts <= 5) {
+            setIsWaking(true);
+            timer = setTimeout(checkHealth, 4000); // Retry every 4s for waking server
+          } else {
+            setBackendHealth(null);
+            setChecking(false);
+            setIsWaking(false);
+          }
+        });
+    };
+
+    checkHealth();
+    return () => clearTimeout(timer);
   }, []);
 
   const handleLogout = async () => { await logout(); navigate('/login'); };
@@ -73,6 +96,10 @@ export default function Navbar() {
             <span style={{ color: 'var(--text-secondary)' }}>API</span>
             {checking ? (
               <span style={{ color: 'var(--text-muted)' }}>···</span>
+            ) : isWaking ? (
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--amber)' }}>
+                <span className="status-dot online" style={{ background: 'var(--amber)', boxShadow: '0 0 6px var(--amber)' }} />Waking...
+              </span>
             ) : backendHealth ? (
               <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--green)' }}>
                 <span className="status-dot online" />Online

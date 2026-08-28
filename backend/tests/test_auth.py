@@ -9,14 +9,17 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from app.main import app
 from app.database.users_db import get_user_by_email
 
+import uuid
+
 class TestAuthEndpoints(unittest.TestCase):
     def setUp(self):
         self.client = TestClient(app)
-        self.student_email = "student_test@college.edu"
+        unique_id = uuid.uuid4().hex[:6]
+        self.student_email = f"student_{unique_id}@college.edu"
         self.student_password = "password123"
         self.student_name = "Test Student"
         
-        self.admin_email = "admin_test@college.edu"
+        self.admin_email = f"admin_{unique_id}@college.edu"
         self.admin_password = "adminpassword123"
         self.admin_name = "Test Admin"
 
@@ -36,6 +39,10 @@ class TestAuthEndpoints(unittest.TestCase):
             self.assertEqual(data["user"]["role"], "student")
 
     def test_02_password_not_plaintext(self):
+        self.client.post("/api/auth/register", json={
+            "name": self.student_name, "email": self.student_email,
+            "password": self.student_password, "role": "student"
+        })
         user_record = get_user_by_email(self.student_email)
         self.assertIsNotNone(user_record)
         # Password hash must not be plain text
@@ -44,6 +51,10 @@ class TestAuthEndpoints(unittest.TestCase):
         self.assertTrue(user_record["password_hash"].startswith("$2"))
 
     def test_03_student_login_success(self):
+        self.client.post("/api/auth/register", json={
+            "name": self.student_name, "email": self.student_email,
+            "password": self.student_password, "role": "student"
+        })
         response = self.client.post("/api/auth/login", json={
             "email": self.student_email,
             "password": self.student_password
@@ -54,6 +65,10 @@ class TestAuthEndpoints(unittest.TestCase):
         self.assertEqual(data["user"]["email"], self.student_email)
 
     def test_04_login_invalid_credentials(self):
+        self.client.post("/api/auth/register", json={
+            "name": self.student_name, "email": self.student_email,
+            "password": self.student_password, "role": "student"
+        })
         response = self.client.post("/api/auth/login", json={
             "email": self.student_email,
             "password": "wrongpassword"
@@ -61,6 +76,10 @@ class TestAuthEndpoints(unittest.TestCase):
         self.assertEqual(response.status_code, 401)
 
     def test_05_get_me(self):
+        self.client.post("/api/auth/register", json={
+            "name": self.student_name, "email": self.student_email,
+            "password": self.student_password, "role": "student"
+        })
         login_res = self.client.post("/api/auth/login", json={
             "email": self.student_email,
             "password": self.student_password
@@ -77,14 +96,15 @@ class TestAuthEndpoints(unittest.TestCase):
         self.assertEqual(me_res.status_code, 401)
 
     def test_07_admin_registration_and_authorization(self):
-        # Register Admin
-        reg_res = self.client.post("/api/auth/register", json={
-            "name": self.admin_name,
-            "email": self.admin_email,
-            "password": self.admin_password,
-            "role": "admin"
+        # Register Admin & Student
+        self.client.post("/api/auth/register", json={
+            "name": self.admin_name, "email": self.admin_email,
+            "password": self.admin_password, "role": "admin"
         })
-        self.assertIn(reg_res.status_code, [201, 400])
+        self.client.post("/api/auth/register", json={
+            "name": self.student_name, "email": self.student_email,
+            "password": self.student_password, "role": "student"
+        })
 
         # Login Admin
         admin_login = self.client.post("/api/auth/login", json={
@@ -109,6 +129,10 @@ class TestAuthEndpoints(unittest.TestCase):
         self.assertEqual(allowed_res.status_code, 200)
 
     def test_08_logout(self):
+        self.client.post("/api/auth/register", json={
+            "name": self.student_name, "email": self.student_email,
+            "password": self.student_password, "role": "student"
+        })
         login_res = self.client.post("/api/auth/login", json={
             "email": self.student_email,
             "password": self.student_password

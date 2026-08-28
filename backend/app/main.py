@@ -19,8 +19,24 @@ logger = logging.getLogger("campusai.main")
 # ── Startup / Shutdown lifecycle ──────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Pre-warm vector cache on startup so first query is instant
-    logger.info("CampusAI startup: pre-warming RAG vector cache...")
+    # Pre-warm vector cache and auto-seed database on startup if fresh
+    logger.info("CampusAI startup: checking database knowledge base status...")
+    try:
+        import sqlite3
+        from app.database.db_service import LOCAL_DB_PATH, init_db
+        init_db()
+        conn = sqlite3.connect(LOCAL_DB_PATH, timeout=10.0)
+        c = conn.cursor()
+        c.execute("SELECT count(*) FROM documents")
+        count = c.fetchone()[0]
+        conn.close()
+        if count == 0:
+            logger.info("Fresh production database detected — auto-seeding 12 comprehensive college policy documents...")
+            from seed_comprehensive_college_data import seed_database
+            seed_database()
+    except Exception as e:
+        logger.warning(f"Auto-seed check warning: {e}")
+
     try:
         from app.rag.rag_service import prewarm_rag_system
         prewarm_rag_system()

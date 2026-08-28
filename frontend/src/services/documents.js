@@ -2,7 +2,7 @@ import apiClient from './api';
 
 export const documentService = {
   getDocuments: async (category = '', statusFilter = '') => {
-    let url = '/api/documents';
+    let url = '/documents';
     const params = new URLSearchParams();
     if (category) params.append('category', category);
     if (statusFilter) params.append('status_filter', statusFilter);
@@ -13,7 +13,7 @@ export const documentService = {
   },
 
   uploadDocument: async (formData) => {
-    const response = await apiClient.post('/api/documents', formData, {
+    const response = await apiClient.post('/documents', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -22,22 +22,22 @@ export const documentService = {
   },
 
   getDocumentById: async (id) => {
-    const response = await apiClient.get(`/api/documents/${id}`);
+    const response = await apiClient.get(`/documents/${id}`);
     return response.data;
   },
 
   deleteDocument: async (id) => {
-    const response = await apiClient.delete(`/api/documents/${id}`);
+    const response = await apiClient.delete(`/documents/${id}`);
     return response.data;
   },
 
   processDocument: async (id) => {
-    const response = await apiClient.post(`/api/documents/${id}/process`);
+    const response = await apiClient.post(`/documents/${id}/process`);
     return response.data;
   },
 
   getAdminStats: async () => {
-    const response = await apiClient.get('/api/admin/stats');
+    const response = await apiClient.get('/admin/stats');
     return response.data;
   }
 };

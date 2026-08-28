@@ -1,4 +1,6 @@
 import os
+import logging
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
@@ -12,13 +14,30 @@ from app.api.bonus_routes import bonus_router
 
 load_dotenv()
 
+logger = logging.getLogger("campusai.main")
+
+# ── Startup / Shutdown lifecycle ──────────────────────────────
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Pre-warm vector cache on startup so first query is instant
+    logger.info("CampusAI startup: pre-warming RAG vector cache...")
+    try:
+        from app.rag.rag_service import prewarm_rag_system
+        prewarm_rag_system()
+        logger.info("RAG pre-warm complete — system ready.")
+    except Exception as e:
+        logger.warning(f"RAG pre-warm failed (non-fatal): {e}")
+    yield
+    logger.info("CampusAI shutdown complete.")
+
 app = FastAPI(
     title="CampusAI Backend API",
     description="RAG-Based College Chatbot Backend Service",
-    version="1.0.0"
+    version="2.0.0",
+    lifespan=lifespan,
 )
 
-# CORS Configuration
+# ── CORS ─────────────────────────────────────────────────────
 frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
 origins = [
     frontend_url,
@@ -35,7 +54,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include API Routers
+# ── Routers ───────────────────────────────────────────────────
 app.include_router(health_router, prefix="/api", tags=["Health"])
 app.include_router(auth_router, prefix="/api", tags=["Authentication"])
 app.include_router(document_router, prefix="/api", tags=["Document Management"])
@@ -46,7 +65,8 @@ app.include_router(bonus_router)
 @app.get("/")
 async def root():
     return {
-        "message": "Welcome to CampusAI API",
+        "message": "Welcome to CampusAI API v2.0",
         "docs": "/docs",
-        "health": "/api/health"
+        "health": "/api/health",
+        "status": "optimised RAG pipeline active"
     }

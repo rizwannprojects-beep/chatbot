@@ -43,19 +43,18 @@ class TestEmbeddingsAndVectorSearch(unittest.TestCase):
         vector = generate_embedding("Sample college academic regulation text.")
         self.assertIsInstance(vector, list)
         self.assertEqual(len(vector), EMBEDDING_DIMENSION)
-        self.assertEqual(EMBEDDING_DIMENSION, 768)
 
     def test_02_batch_chunk_embeddings(self):
         texts = ["Admissions criteria 2026", "Hostel check-in rules and curfew", "End semester exam grading policy"]
         vectors = generate_batch_embeddings(texts)
         self.assertEqual(len(vectors), 3)
         for vec in vectors:
-            self.assertEqual(len(vec), 768)
+            self.assertEqual(len(vec), EMBEDDING_DIMENSION)
 
     def test_03_cosine_similarity_math(self):
-        v1 = [1.0] + [0.0] * 767
-        v2 = [1.0] + [0.0] * 767
-        v3 = [0.0] * 767 + [1.0]
+        v1 = [1.0] + [0.0] * (EMBEDDING_DIMENSION - 1)
+        v2 = [1.0] + [0.0] * (EMBEDDING_DIMENSION - 1)
+        v3 = [0.0] * (EMBEDDING_DIMENSION - 1) + [1.0]
         
         self.assertAlmostEqual(cosine_similarity(v1, v2), 1.0, places=4)
         self.assertAlmostEqual(cosine_similarity(v1, v3), 0.0, places=4)

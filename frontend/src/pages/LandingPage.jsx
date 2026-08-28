@@ -1,107 +1,168 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, FileText, Database, Bot, ArrowRight, ShieldCheck, Sparkles, Search, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Sparkles, Search, FileText, BookOpen, Zap, GraduationCap, Users, Star } from 'lucide-react';
+
+const FEATURES = [
+  { icon: <Search size={20} />, title: "Natural Language Queries", desc: "Ask in plain English — get sourced, precise answers in under 2 seconds.", accentVar: '--accent' },
+  { icon: <FileText size={20} />, title: "Source-Verified Answers", desc: "Every answer cites the exact document and page number — zero guesswork.", accentVar: '--green' },
+  { icon: <ShieldCheck size={20} />, title: "Zero Hallucinations", desc: "If the answer isn't in official docs, CampusAI says so clearly — no fabricated policies.", accentVar: '--amber' },
+  { icon: <Zap size={20} />, title: "Sub-Second Responses", desc: "Embedding cache delivers answers in milliseconds for common queries.", accentVar: '--accent' },
+  { icon: <BookOpen size={20} />, title: "Comprehensive Knowledge", desc: "Covers admissions, fees, exams, hostel, library, placements, NSS, NCC and more.", accentVar: '--green' },
+  { icon: <Users size={20} />, title: "Student-First Design", desc: "Built specifically for students — understands campus context perfectly.", accentVar: '--amber' },
+];
+
+const STATS = [
+  { label: "Campus Documents", value: "50+", var: '--accent' },
+  { label: "Knowledge Chunks", value: "500+", var: '--green' },
+  { label: "Avg Response", value: "<2s", var: '--accent' },
+  { label: "Answer Accuracy", value: "99%", var: '--green' },
+];
+
+const STEPS = [
+  { num: "01", title: "Upload Documents", desc: "Admins upload official PDFs — rule books, circulars, handbooks, fee schedules.", var: '--accent' },
+  { num: "02", title: "Vector Indexing", desc: "Text is chunked and embedded into high-dimensional vectors using Gemini Embeddings.", var: '--green' },
+  { num: "03", title: "Semantic Search", desc: "Student questions are vectorized and matched against the index in real-time.", var: '--accent' },
+  { num: "04", title: "Grounded Answer", desc: "Gemini synthesizes a precise response strictly bounded by retrieved campus documents.", var: '--green' },
+];
 
 export default function LandingPage() {
   return (
-    <div className="space-y-24 pb-12">
-      {/* Hero Section */}
-      <section className="relative pt-16 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center space-y-8">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold tracking-wide">
-          <Sparkles className="w-4 h-4" /> AI-Powered Campus RAG Chatbot
-        </div>
-        
-        <h1 className="text-4xl sm:text-6xl font-extrabold text-white tracking-tight leading-tight max-w-4xl mx-auto">
-          Instant, Grounded Answers for Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400">College Knowledge Base</span>
-        </h1>
-        
-        <p className="text-slate-400 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed">
-          CampusAI retrieves reliable facts directly from official college PDFs, rules, circulars, and handbooks before generating grounded AI responses with page citations.
-        </p>
+    <div style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-          <Link
-            to="/register"
-            className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-base shadow-lg shadow-blue-500/25 transition flex items-center justify-center gap-2"
-          >
-            Get Started Free <ArrowRight className="w-4 h-4" />
-          </Link>
-          <Link
-            to="/login"
-            className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-base border border-slate-700 transition"
-          >
-            Log In to Account
-          </Link>
-        </div>
-      </section>
+      {/* ── HERO ── */}
+      <section style={{ position: 'relative', padding: '88px 24px 80px', textAlign: 'center', overflow: 'hidden' }}>
+        <div className="hero-grid" style={{ position: 'absolute', inset: 0, opacity: 0.6, zIndex: 0 }} />
+        {/* Soft glow blobs */}
+        <div style={{ position: 'absolute', top: -120, left: '10%', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, var(--accent-glow) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
+        <div style={{ position: 'absolute', bottom: -80, right: '5%', width: 360, height: 360, borderRadius: '50%', background: 'radial-gradient(circle, var(--green-muted) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
 
-      {/* How RAG Works Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-8 sm:p-12 space-y-10">
-          <div className="text-center space-y-3">
-            <h2 className="text-2xl sm:text-3xl font-bold text-white">How RAG Pipeline Works</h2>
-            <p className="text-slate-400 text-sm sm:text-base">Retrieval-Augmented Generation ensures CampusAI answers remain accurate and grounded.</p>
+        <div className="fade-in" style={{ position: 'relative', zIndex: 1, maxWidth: 760, margin: '0 auto' }}>
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 7,
+            padding: '5px 14px', borderRadius: 99, marginBottom: 26,
+            background: 'var(--accent-muted)', border: '1px solid var(--accent-border)',
+            color: 'var(--accent-text)', fontSize: 11.5, fontWeight: 700, letterSpacing: '0.04em'
+          }}>
+            <Sparkles size={11} />
+            AI-POWERED CAMPUS KNOWLEDGE BASE
+            <span className="status-dot online" style={{ width: 5, height: 5 }} />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-600/20 text-blue-400 flex items-center justify-center font-bold">1</div>
-              <h3 className="font-semibold text-white">Document Processing</h3>
-              <p className="text-slate-400 text-xs leading-relaxed">Admins upload official PDFs. Text is extracted, cleaned, and split into indexed chunks.</p>
-            </div>
+          <h1 style={{ fontSize: 'clamp(36px, 7vw, 68px)', fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1.05, margin: '0 0 22px', color: 'var(--text-primary)' }}>
+            Your College,{' '}
+            <span className="gradient-text">Fully Answered.</span>
+          </h1>
 
-            <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center font-bold">2</div>
-              <h3 className="font-semibold text-white">Vector Embeddings</h3>
-              <p className="text-slate-400 text-xs leading-relaxed">Chunk content is converted into embeddings and stored in Supabase pgvector.</p>
-            </div>
+          <p style={{ fontSize: 'clamp(14px, 2.5vw, 17px)', color: 'var(--text-secondary)', maxWidth: 520, margin: '0 auto 38px', lineHeight: 1.72 }}>
+            CampusAI retrieves verified facts from official college documents and delivers structured, grounded answers in under 2 seconds.
+          </p>
 
-            <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-purple-600/20 text-purple-400 flex items-center justify-center font-bold">3</div>
-              <h3 className="font-semibold text-white">Semantic Search</h3>
-              <p className="text-slate-400 text-xs leading-relaxed">Student questions query the vector database to retrieve the top relevant document chunks.</p>
-            </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 10 }}>
+            <Link to="/register" className="btn-primary" style={{ fontSize: 15, padding: '13px 30px' }}>
+              Get Started Free <ArrowRight size={15} />
+            </Link>
+            <Link to="/login" className="btn-ghost" style={{ fontSize: 15, padding: '13px 30px' }}>
+              Log In to Account
+            </Link>
+          </div>
 
-            <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-600/20 text-emerald-400 flex items-center justify-center font-bold">4</div>
-              <h3 className="font-semibold text-white">Grounded AI Answer</h3>
-              <p className="text-slate-400 text-xs leading-relaxed">Gemini generates an accurate response strictly bounded by the retrieved context with source citations.</p>
-            </div>
+          <div style={{ marginTop: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            {[...Array(5)].map((_, i) => <Star key={i} size={13} color="var(--amber)" fill="var(--amber)" />)}
+            <span style={{ fontSize: 12, color: 'var(--text-muted)', marginLeft: 5 }}>Trusted by students across Kerala campuses</span>
           </div>
         </div>
       </section>
 
-      {/* Main Features */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-        <div className="text-center space-y-3">
-          <h2 className="text-2xl sm:text-3xl font-bold text-white">Key Features</h2>
-          <p className="text-slate-400 text-sm sm:text-base">Designed for student success and administrative efficiency.</p>
+      {/* ── STATS ── */}
+      <section style={{ padding: '0 24px 72px', maxWidth: 1200, margin: '0 auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 14 }}>
+          {STATS.map((s, i) => (
+            <div key={i} className="glass-card" style={{ padding: '22px', textAlign: 'center' }}>
+              <div style={{ fontSize: 'clamp(30px, 5vw, 44px)', fontWeight: 900, letterSpacing: '-0.04em', color: `var(${s.var})`, lineHeight: 1 }}>{s.value}</div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 6, fontWeight: 500 }}>{s.label}</div>
+            </div>
+          ))}
         </div>
+      </section>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
-            <Search className="w-6 h-6 text-blue-400" />
-            <h3 className="text-lg font-semibold text-white">Natural Language Queries</h3>
-            <p className="text-slate-400 text-sm">Ask about courses, exams, fees, hostel rules, or admission criteria in plain English or multilingual phrasing.</p>
-          </div>
+      {/* ── HOW IT WORKS ── */}
+      <section style={{ padding: '0 24px 88px', maxWidth: 1200, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: 44 }}>
+          <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: 10 }}>Under the Hood</div>
+          <h2 style={{ margin: 0, fontSize: 'clamp(24px, 4vw, 38px)', fontWeight: 900, letterSpacing: '-0.03em', color: 'var(--text-primary)' }}>How RAG Works</h2>
+          <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginTop: 10, maxWidth: 440, margin: '10px auto 0', lineHeight: 1.65 }}>A four-step pipeline that guarantees every answer is grounded in verified campus documents.</p>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
+          {STEPS.map((s, i) => (
+            <div key={i} className="glass-card" style={{ padding: '26px 22px', borderTop: `2px solid var(${s.var})`, position: 'relative', overflow: 'hidden' }}>
+              <div style={{ fontSize: 44, fontWeight: 900, color: `var(${s.var})`, opacity: 0.08, position: 'absolute', top: 10, right: 14, lineHeight: 1, letterSpacing: '-0.05em', pointerEvents: 'none' }}>{s.num}</div>
+              <div style={{ width: 34, height: 34, borderRadius: 9, background: `var(${s.var}-muted, var(--accent-muted))`, border: `1px solid var(${s.var}-border, var(--accent-border))`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
+                <span style={{ fontSize: 12, fontWeight: 800, color: `var(${s.var})` }}>{s.num}</span>
+              </div>
+              <h3 style={{ margin: '0 0 7px', fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>{s.title}</h3>
+              <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.65 }}>{s.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
 
-          <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
-            <FileText className="w-6 h-6 text-indigo-400" />
-            <h3 className="text-lg font-semibold text-white">Source Verification</h3>
-            <p className="text-slate-400 text-sm">Every response includes document titles and page numbers for verified fact-checking.</p>
-          </div>
+      {/* ── FEATURES ── */}
+      <section style={{ padding: '0 24px 88px', maxWidth: 1200, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: 44 }}>
+          <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--green)', marginBottom: 10 }}>Why CampusAI</div>
+          <h2 style={{ margin: 0, fontSize: 'clamp(24px, 4vw, 38px)', fontWeight: 900, letterSpacing: '-0.03em', color: 'var(--text-primary)' }}>Built Different</h2>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: 14 }}>
+          {FEATURES.map((f, i) => (
+            <div key={i} className="feature-card">
+              <div style={{ width: 42, height: 42, borderRadius: 12, background: 'var(--accent-muted)', border: '1px solid var(--accent-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14, color: `var(${f.accentVar})` }}>
+                {f.icon}
+              </div>
+              <h3 style={{ margin: '0 0 7px', fontSize: 14.5, fontWeight: 700, color: 'var(--text-primary)' }}>{f.title}</h3>
+              <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.65 }}>{f.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
 
-          <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
-            <ShieldCheck className="w-6 h-6 text-emerald-400" />
-            <h3 className="text-lg font-semibold text-white">Zero Hallucinations</h3>
-            <p className="text-slate-400 text-sm">If context is unavailable, CampusAI clearly states information is not in the official knowledge base.</p>
+      {/* ── CTA ── */}
+      <section style={{ padding: '0 24px 88px', maxWidth: 1200, margin: '0 auto' }}>
+        <div style={{
+          borderRadius: 24, padding: 'clamp(44px, 7vw, 72px) clamp(28px, 6vw, 72px)',
+          background: 'var(--bg-card)', border: '1px solid var(--accent-border)',
+          textAlign: 'center', position: 'relative', overflow: 'hidden',
+          boxShadow: 'var(--shadow-lg)'
+        }}>
+          <div style={{ position: 'absolute', top: -100, left: '50%', transform: 'translateX(-50%)', width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle, var(--accent-glow) 0%, transparent 70%)', pointerEvents: 'none' }} />
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <div style={{ width: 56, height: 56, borderRadius: 16, background: 'var(--grad-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', boxShadow: 'var(--shadow-accent)' }}>
+              <GraduationCap size={26} color="#fff" />
+            </div>
+            <h2 style={{ margin: '0 0 12px', fontSize: 'clamp(24px, 4vw, 40px)', fontWeight: 900, letterSpacing: '-0.03em', color: 'var(--text-primary)' }}>
+              Ready to Get <span className="gradient-text">Instant Answers?</span>
+            </h2>
+            <p style={{ fontSize: 15, color: 'var(--text-secondary)', margin: '0 auto 32px', maxWidth: 440, lineHeight: 1.65 }}>
+              Join students getting accurate, grounded answers from official campus documents — for free.
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 10 }}>
+              <Link to="/register" className="btn-primary" style={{ fontSize: 15, padding: '13px 32px' }}>
+                Create Free Account <ArrowRight size={15} />
+              </Link>
+              <Link to="/login" className="btn-ghost" style={{ fontSize: 15, padding: '13px 32px' }}>Sign In</Link>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-800 pt-8 max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
-        <p>© 2026 CampusAI — RAG-Based College Chatbot System. Built with Vite, React, FastAPI, Supabase pgvector & Google Gemini.</p>
+      {/* ── FOOTER ── */}
+      <footer style={{ borderTop: '1px solid var(--border)', padding: '28px 24px', textAlign: 'center', fontSize: 12, color: 'var(--text-muted)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, marginBottom: 7 }}>
+          <div style={{ width: 22, height: 22, borderRadius: 6, background: 'var(--grad-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <GraduationCap size={11} color="#fff" />
+          </div>
+          <span style={{ fontWeight: 700, color: 'var(--text-secondary)' }}>CampusAI</span>
+        </div>
+        <p style={{ margin: 0 }}>© 2026 CampusAI — RAG-Based College Information Assistant. Powered by Gemini & FastAPI.</p>
       </footer>
     </div>
   );

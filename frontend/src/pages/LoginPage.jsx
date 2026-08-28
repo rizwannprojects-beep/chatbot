@@ -1,119 +1,131 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { LogIn, Lock, Mail, AlertCircle, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { LogIn, Lock, Mail, AlertCircle, Eye, EyeOff, Loader2, GraduationCap, ArrowRight, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPwd, setShowPwd] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
   const from = location.state?.from?.pathname || '/dashboard';
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
+    e.preventDefault(); setError(''); setLoading(true);
     try {
       const res = await login(email, password);
-      if (res.user.role === 'admin') {
-        navigate('/admin');
-      } else {
-        navigate(from);
-      }
+      navigate(res.user.role === 'admin' ? '/admin' : from);
     } catch (err) {
-      console.error('Login error:', err);
-      const msg = err.response?.data?.detail || 'Failed to log in. Please check your credentials.';
-      setError(msg);
-    } finally {
-      setLoading(false);
-    }
+      setError(err.response?.data?.detail || 'Failed to log in. Please check your credentials.');
+    } finally { setLoading(false); }
   };
 
   return (
-    <div className="max-w-md mx-auto my-12 p-8 rounded-2xl bg-slate-900 border border-slate-800 space-y-6 shadow-xl">
-      <div className="text-center space-y-2">
-        <div className="inline-flex p-3 rounded-2xl bg-indigo-500/10 text-indigo-400 mb-1">
-          <LogIn className="w-6 h-6" />
-        </div>
-        <h1 className="text-2xl font-bold text-white">Log in to CampusAI</h1>
-        <p className="text-slate-400 text-xs">Access your grounded college information dashboard</p>
-      </div>
+    <div style={{
+      minHeight: 'calc(100vh - 58px)', display: 'flex',
+      alignItems: 'center', justifyContent: 'center',
+      padding: 24, background: 'var(--bg)', position: 'relative', overflow: 'hidden'
+    }}>
+      {/* Soft glow */}
+      <div style={{ position: 'absolute', top: -120, left: '-5%', width: 480, height: 480, borderRadius: '50%', background: 'radial-gradient(circle, var(--accent-glow) 0%, transparent 70%)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', bottom: -80, right: '0%', width: 360, height: 360, borderRadius: '50%', background: 'radial-gradient(circle, var(--green-muted) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
-      {error && (
-        <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 shrink-0" />
-          <span>{error}</span>
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-xs font-medium text-slate-300 mb-1.5">Email Address</label>
-          <div className="relative">
-            <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="student@college.edu"
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs sm:text-sm focus:outline-none focus:border-indigo-500 transition"
-            />
+      <div className="fade-in" style={{ width: '100%', maxWidth: 420, position: 'relative', zIndex: 1 }}>
+        <div style={{
+          background: 'var(--bg-card)', border: '1px solid var(--border)',
+          borderRadius: 22, padding: '38px 34px',
+          boxShadow: 'var(--shadow-lg)'
+        }}>
+          {/* Logo & Title */}
+          <div style={{ textAlign: 'center', marginBottom: 30 }}>
+            <div style={{
+              width: 54, height: 54, borderRadius: 15, margin: '0 auto 15px',
+              background: 'var(--grad-accent)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: 'var(--shadow-accent)'
+            }}>
+              <GraduationCap size={24} color="#fff" />
+            </div>
+            <h1 style={{ margin: '0 0 5px', fontSize: 23, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.03em' }}>Welcome back</h1>
+            <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)' }}>Sign in to your CampusAI account</p>
           </div>
-        </div>
 
-        <div>
-          <label className="block text-xs font-medium text-slate-300 mb-1.5">Password</label>
-          <div className="relative">
-            <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
-            <input
-              type={showPassword ? 'text' : 'password'}
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs sm:text-sm focus:outline-none focus:border-indigo-500 transition"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3.5 top-3 text-slate-500 hover:text-slate-300 transition"
-            >
-              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </button>
-          </div>
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs sm:text-sm transition shadow-lg shadow-indigo-500/20 disabled:opacity-50 flex items-center justify-center gap-2"
-        >
-          {loading ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span>Authenticating...</span>
-            </>
-          ) : (
-            <span>Sign In</span>
+          {/* Error */}
+          {error && (
+            <div style={{
+              padding: '10px 13px', borderRadius: 11, marginBottom: 18,
+              background: 'var(--danger-muted)', border: '1px solid var(--danger-border)',
+              display: 'flex', alignItems: 'center', gap: 8,
+              color: 'var(--danger-text)', fontSize: 12.5
+            }}>
+              <AlertCircle size={14} style={{ flexShrink: 0 }} />{error}
+            </div>
           )}
-        </button>
-      </form>
 
-      <div className="text-center text-xs text-slate-400">
-        Don't have an account?{' '}
-        <Link to="/register" className="text-indigo-400 hover:underline font-semibold">
-          Register here
-        </Link>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
+            {/* Email */}
+            <div>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 7 }}>Email Address</label>
+              <div style={{ position: 'relative' }}>
+                <Mail size={14} color="var(--text-muted)" style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
+                  placeholder="student@college.edu"
+                  className="premium-input" style={{ paddingLeft: 38 }}
+                />
+              </div>
+            </div>
+            {/* Password */}
+            <div>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 7 }}>Password</label>
+              <div style={{ position: 'relative' }}>
+                <Lock size={14} color="var(--text-muted)" style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                <input type={showPwd ? 'text' : 'password'} required value={password} onChange={e => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="premium-input" style={{ paddingLeft: 38, paddingRight: 38 }}
+                />
+                <button type="button" onClick={() => setShowPwd(!showPwd)}
+                  style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 2 }}>
+                  {showPwd ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              </div>
+            </div>
+            {/* Submit */}
+            <button type="submit" disabled={loading}
+              className="btn-primary"
+              style={{ width: '100%', marginTop: 4, padding: '13px', borderRadius: 13, fontSize: 14, opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}>
+              {loading
+                ? <><Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> Authenticating...</>
+                : <>Sign In <ArrowRight size={14} /></>
+              }
+            </button>
+          </form>
+
+          {/* Demo info */}
+          <div style={{
+            marginTop: 18, padding: '11px 13px', borderRadius: 11,
+            background: 'var(--green-muted)', border: '1px solid var(--green-border)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 5 }}>
+              <Sparkles size={11} color="var(--green)" />
+              <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--green-text)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Demo Credentials</span>
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.75 }}>
+              <div>Student: <code style={{ background: 'var(--accent-muted)', color: 'var(--accent-text)', padding: '1px 5px', borderRadius: 4, fontSize: 10.5 }}>student_test@college.edu</code> / <code style={{ background: 'var(--accent-muted)', color: 'var(--accent-text)', padding: '1px 5px', borderRadius: 4, fontSize: 10.5 }}>studentpass123</code></div>
+              <div style={{ marginTop: 2 }}>Admin: <code style={{ background: 'var(--amber-muted)', color: 'var(--amber-text)', padding: '1px 5px', borderRadius: 4, fontSize: 10.5 }}>admin_test@college.edu</code> / <code style={{ background: 'var(--amber-muted)', color: 'var(--amber-text)', padding: '1px 5px', borderRadius: 4, fontSize: 10.5 }}>adminpass123</code></div>
+            </div>
+          </div>
+
+          <div style={{ textAlign: 'center', marginTop: 18, fontSize: 12.5, color: 'var(--text-muted)' }}>
+            Don't have an account?{' '}
+            <Link to="/register" style={{ color: 'var(--accent)', fontWeight: 700, textDecoration: 'none' }}>Register here →</Link>
+          </div>
+        </div>
       </div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

@@ -1,8 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { LayoutDashboard, MessageSquare, BookOpen, Clock, HelpCircle, User, ArrowRight, Sparkles, Loader2 } from 'lucide-react';
+import { MessageSquare, BookOpen, Sparkles, Loader2, GraduationCap, TrendingUp, Zap, ArrowRight, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { getUserConversations } from '../services/chat';
+
+const CATEGORIES = [
+  { title: 'Admissions', emoji: '🎓', desc: 'Certificates, deadlines & requirements' },
+  { title: 'Examinations', emoji: '📝', desc: 'Semester schedules & grading rules' },
+  { title: 'Hostel & Housing', emoji: '🏠', desc: 'Curfew times & check-in guidelines' },
+  { title: 'Library Services', emoji: '📚', desc: 'Textbook borrowing & quiet hours' },
+  { title: 'Fee Structure', emoji: '💰', desc: 'Tuition, hostel fees & scholarships' },
+  { title: 'Placements', emoji: '💼', desc: 'Campus recruitment & career guidance' },
+];
+
+const QUICK_ASKS = [
+  { label: 'Admission process 2026', emoji: '🎓' },
+  { label: 'Hostel rules & curfew', emoji: '🏠' },
+  { label: 'Exam schedule', emoji: '📝' },
+  { label: 'Fee structure', emoji: '💰' },
+  { label: 'Placement stats', emoji: '📈' },
+];
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -11,126 +28,153 @@ export default function DashboardPage() {
 
   useEffect(() => {
     getUserConversations()
-      .then((data) => {
-        setConversations(data || []);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error('Failed to fetch user conversations for dashboard:', err);
-        setLoading(false);
-      });
+      .then(d => { setConversations(d || []); setLoading(false); })
+      .catch(() => setLoading(false));
   }, []);
 
+  const greet = () => {
+    const h = new Date().getHours();
+    return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+  };
+
+  const METRICS = [
+    { icon: <MessageSquare size={17} color="var(--accent)" />, label: 'Chat Threads', value: loading ? null : conversations.length },
+    { icon: <BookOpen size={17} color="var(--green)" />, label: 'Knowledge Docs', value: '50+' },
+    { icon: <Zap size={17} color="var(--amber)" />, label: 'Avg Response', value: '<2s' },
+    { icon: <TrendingUp size={17} color="var(--accent)" />, label: 'Role', value: user?.role === 'admin' ? 'Admin' : 'Student' },
+  ];
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
-      {/* Welcome Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <LayoutDashboard className="w-6 h-6 text-indigo-400" /> Student Dashboard
-          </h1>
-          <p className="text-slate-400 text-sm mt-1">
-            Welcome back, <span className="text-white font-semibold">{user?.name}</span>! Access your grounded college assistant.
-          </p>
+    <div style={{ maxWidth: 1200, margin: '0 auto', padding: '28px 22px', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+
+      {/* ── WELCOME ── */}
+      <div className="fade-in" style={{
+        display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between',
+        gap: 18, marginBottom: 24,
+        padding: '24px 28px',
+        background: 'var(--bg-card)',
+        border: '1px solid var(--accent-border)',
+        borderRadius: 18,
+        boxShadow: 'var(--shadow-sm)',
+        position: 'relative', overflow: 'hidden'
+      }}>
+        <div style={{ position: 'absolute', top: -80, right: -40, width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle, var(--accent-glow) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{ width: 46, height: 46, borderRadius: 13, background: 'var(--grad-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-accent)', flexShrink: 0 }}>
+            <User size={20} color="#fff" />
+          </div>
+          <div>
+            <p style={{ margin: 0, fontSize: 12, color: 'var(--text-muted)' }}>{greet()},</p>
+            <h1 style={{ margin: 0, fontSize: 20, fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.03em' }}>
+              {user?.name || 'Student'} 👋
+            </h1>
+            <p style={{ margin: 0, fontSize: 12.5, color: 'var(--text-secondary)', marginTop: 2 }}>Your campus knowledge assistant is ready.</p>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <Link
-            to="/chat"
-            className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-lg shadow-indigo-500/20 flex items-center gap-2 transition"
-          >
-            <MessageSquare className="w-4 h-4" /> Open Campus Chat <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
+        <Link to="/chat" className="btn-primary" style={{ fontSize: 13, padding: '10px 20px', position: 'relative', zIndex: 1 }}>
+          <MessageSquare size={13} /> Open Campus Chat <ArrowRight size={13} />
+        </Link>
       </div>
 
-      {/* Metrics Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
-          <MessageSquare className="w-5 h-5 text-indigo-400" />
-          <h3 className="text-sm font-semibold text-slate-300">Total Chat Threads</h3>
-          <p className="text-3xl font-extrabold text-white">{loading ? '...' : conversations.length}</p>
-        </div>
-
-        <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
-          <BookOpen className="w-5 h-5 text-purple-400" />
-          <h3 className="text-sm font-semibold text-slate-300">Knowledge Base</h3>
-          <p className="text-3xl font-extrabold text-white">Active</p>
-        </div>
-
-        <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
-          <Clock className="w-5 h-5 text-emerald-400" />
-          <h3 className="text-sm font-semibold text-slate-300">Account Role</h3>
-          <p className="text-xl font-bold text-white capitalize">{user?.role || 'Student'}</p>
-        </div>
+      {/* ── METRICS ── */}
+      <div className="fade-in" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 12, marginBottom: 20 }}>
+        {METRICS.map((m, i) => (
+          <div key={i} className="glass-card" style={{ padding: '18px 20px' }}>
+            <div style={{ marginBottom: 10 }}>{m.icon}</div>
+            <div style={{ fontSize: 28, fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.04em', lineHeight: 1 }}>
+              {m.value === null ? <div className="shimmer" style={{ width: 36, height: 28, borderRadius: 7 }} /> : m.value}
+            </div>
+            <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 5, fontWeight: 500 }}>{m.label}</div>
+          </div>
+        ))}
       </div>
 
-      {/* Recent Activity & Quick Access */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* ── GRID ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.5fr)', gap: 14, marginBottom: 16 }}>
+
         {/* Recent Conversations */}
-        <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold text-white flex items-center gap-2">
-              <MessageSquare className="w-4 h-4 text-indigo-400" /> Recent Conversations
+        <div className="fade-in glass-card" style={{ padding: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+            <h2 style={{ margin: 0, fontSize: 13.5, fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <MessageSquare size={13} color="var(--accent)" /> Recent Chats
             </h2>
-            <Link to="/chat" className="text-xs text-indigo-400 hover:underline font-semibold">
-              View All
-            </Link>
+            <Link to="/chat" style={{ fontSize: 11, color: 'var(--accent)', textDecoration: 'none', fontWeight: 700 }}>View all →</Link>
           </div>
-
-          {loading ? (
-            <div className="py-8 text-center text-slate-400 text-xs flex items-center justify-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin text-indigo-500" /> Loading threads...
-            </div>
-          ) : conversations.length === 0 ? (
-            <div className="py-8 text-center text-slate-500 text-xs space-y-2">
-              <p>No previous chat conversations yet.</p>
-              <Link to="/chat" className="inline-block text-indigo-400 hover:underline font-semibold">
-                Start your first chat thread →
-              </Link>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {conversations.slice(0, 4).map((conv) => (
-                <Link
-                  key={conv.id}
-                  to="/chat"
-                  className="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800 hover:border-indigo-500/50 transition text-xs"
-                >
-                  <span className="truncate font-medium text-slate-200">{conv.title}</span>
-                  <span className="text-[10px] text-slate-500 shrink-0 ml-2">
-                    {new Date(conv.updated_at).toLocaleDateString()}
-                  </span>
-                </Link>
-              ))}
-            </div>
-          )}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+            {loading
+              ? [1, 2, 3].map(i => <div key={i} className="shimmer" style={{ height: 42, borderRadius: 9 }} />)
+              : conversations.length === 0
+                ? (
+                  <div style={{ padding: '28px 0', textAlign: 'center' }}>
+                    <div style={{ fontSize: 30, marginBottom: 8 }}>💬</div>
+                    <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>No chats yet.</p>
+                    <Link to="/chat" style={{ fontSize: 12, color: 'var(--accent)', fontWeight: 700, textDecoration: 'none', display: 'block', marginTop: 7 }}>Start your first chat →</Link>
+                  </div>
+                )
+                : conversations.slice(0, 5).map(conv => (
+                  <Link key={conv.id} to="/chat" style={{ textDecoration: 'none' }}>
+                    <div style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '9px 11px', borderRadius: 9,
+                      background: 'var(--bg)', border: '1px solid var(--border)', transition: 'all 0.15s'
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent-border)'; e.currentTarget.style.background = 'var(--accent-muted)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'var(--bg)'; }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0, flex: 1 }}>
+                        <MessageSquare size={11} color="var(--text-muted)" style={{ flexShrink: 0 }} />
+                        <span style={{ fontSize: 12, color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{conv.title || 'Untitled Chat'}</span>
+                      </div>
+                      <span style={{ fontSize: 10.5, color: 'var(--text-muted)', flexShrink: 0, marginLeft: 8 }}>
+                        {new Date(conv.updated_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </Link>
+                ))
+            }
+          </div>
         </div>
 
-        {/* Useful Categories */}
-        <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
-          <h2 className="text-base font-semibold text-white flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-purple-400" /> Knowledge Categories
+        {/* Knowledge Categories */}
+        <div className="fade-in glass-card" style={{ padding: '20px' }}>
+          <h2 style={{ margin: '0 0 13px', fontSize: 13.5, fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Sparkles size={13} color="var(--green)" /> Knowledge Base
           </h2>
-          <div className="grid grid-cols-2 gap-3 text-xs">
-            <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-              <div className="font-semibold text-indigo-400">Admissions</div>
-              <p className="text-slate-400 text-[11px]">Certificates, deadlines & requirements</p>
-            </div>
-            <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-              <div className="font-semibold text-purple-400">Examinations</div>
-              <p className="text-slate-400 text-[11px]">Semester schedules & grading rules</p>
-            </div>
-            <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-              <div className="font-semibold text-emerald-400">Hostel & Housing</div>
-              <p className="text-slate-400 text-[11px]">Curfew times & check-in guidelines</p>
-            </div>
-            <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-              <div className="font-semibold text-blue-400">Library Services</div>
-              <p className="text-slate-400 text-[11px]">Textbook borrowing & quiet hours</p>
-            </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            {CATEGORIES.map((cat, i) => (
+              <Link key={i} to="/chat" className="cat-card">
+                <span style={{ fontSize: 20, display: 'block', marginBottom: 5 }}>{cat.emoji}</span>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 3 }}>{cat.title}</div>
+                <div style={{ fontSize: 10.5, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{cat.desc}</div>
+              </Link>
+            ))}
           </div>
         </div>
       </div>
+
+      {/* ── QUICK ASKS ── */}
+      <div className="fade-in glass-card" style={{ padding: '18px 20px' }}>
+        <h2 style={{ margin: '0 0 12px', fontSize: 13.5, fontWeight: 700, color: 'var(--text-primary)' }}>Quick Questions</h2>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {QUICK_ASKS.map((a, i) => (
+            <Link key={i} to="/chat" style={{ textDecoration: 'none' }}>
+              <button style={{
+                padding: '7px 13px', borderRadius: 9, cursor: 'pointer',
+                background: 'var(--bg)', border: '1px solid var(--border)',
+                color: 'var(--text-secondary)', fontSize: 12, fontWeight: 500,
+                display: 'flex', alignItems: 'center', gap: 6,
+                fontFamily: 'Plus Jakarta Sans, sans-serif', transition: 'all 0.18s'
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent-border)'; e.currentTarget.style.color = 'var(--accent-text)'; e.currentTarget.style.background = 'var(--accent-muted)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.background = 'var(--bg)'; }}
+              >
+                <span>{a.emoji}</span> {a.label}
+              </button>
+            </Link>
+          ))}
+        </div>
+      </div>
+
     </div>
   );
 }

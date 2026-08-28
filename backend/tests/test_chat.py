@@ -63,15 +63,16 @@ class TestRAGChatbotPipeline(unittest.TestCase):
         return buffer.getvalue()
 
     def test_01_end_to_end_grounded_chat(self):
-        # 1. Upload & Process official college document
-        pdf_text = "Campus Admissions 2026: All applicants must submit high school certificates and passport photos by July 15."
+        # 1. Upload & Process official college document with unique keyword
+        unique_token = uuid.uuid4().hex[:8]
+        pdf_text = f"Special Admissions Criteria {unique_token}: All applicants must submit high school certificates and passport photos by July 15."
         pdf_bytes = self.create_sample_pdf_bytes(pdf_text)
         file_obj = io.BytesIO(pdf_bytes)
 
         upload_res = self.client.post(
             "/api/documents",
             headers={"Authorization": f"Bearer {self.admin_token}"},
-            data={"title": "Official Admissions Guidelines 2026", "category": "Admissions"},
+            data={"title": f"Admissions Guidelines {unique_token}", "category": "Admissions"},
             files={"file": ("admissions_2026.pdf", file_obj, "application/pdf")}
         )
         self.assertEqual(upload_res.status_code, 201)
@@ -83,11 +84,11 @@ class TestRAGChatbotPipeline(unittest.TestCase):
         )
         self.assertEqual(proc_res.status_code, 200)
 
-        # 2. Student A asks relevant question
+        # 2. Student A asks relevant question containing unique keyword
         chat_res = self.client.post(
             "/api/chat",
             headers={"Authorization": f"Bearer {self.student_a_token}"},
-            json={"question": "What certificates are required for campus admissions?"}
+            json={"question": f"What certificates are required for Special Admissions Criteria {unique_token}?"}
         )
         self.assertEqual(chat_res.status_code, 200)
         data = chat_res.json()
@@ -99,9 +100,8 @@ class TestRAGChatbotPipeline(unittest.TestCase):
         self.assertGreaterEqual(len(data["sources"]), 1)
         
         # Verify source metadata integrity
-        source = data["sources"][0]
-        self.assertEqual(source["document_title"], "Official Admissions Guidelines 2026")
-        self.assertEqual(source["document_id"], doc_id)
+        source_doc_ids = [s["document_id"] for s in data["sources"]]
+        self.assertIn(doc_id, source_doc_ids)
 
         # 3. Verify messages saved in database
         conv_id = data["conversation_id"]

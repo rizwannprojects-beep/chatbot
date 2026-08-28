@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import MainLayout from './layouts/MainLayout';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
@@ -16,68 +17,28 @@ import AdminRoute from './components/AdminRoute';
 
 export default function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <MainLayout>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            
-            {/* Protected Student Routes */}
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <DashboardPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/chat"
-              element={
-                <ProtectedRoute>
-                  <ChatPage />
-                </ProtectedRoute>
-              }
-            />
+    <ThemeProvider>
+      <AuthProvider>
+        <Router>
+          <MainLayout>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
 
-            {/* Protected Admin Routes */}
-            <Route
-              path="/admin"
-              element={
-                <AdminRoute>
-                  <AdminDashboardPage />
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/admin/documents"
-              element={
-                <AdminRoute>
-                  <AdminDocumentsPage />
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/admin/documents/upload"
-              element={
-                <AdminRoute>
-                  <AdminDocumentUploadPage />
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/admin/documents/:id"
-              element={
-                <AdminRoute>
-                  <AdminDocumentDetailPage />
-                </AdminRoute>
-              }
-            />
-          </Routes>
-        </MainLayout>
-      </Router>
-    </AuthProvider>
+              {/* Protected Student Routes */}
+              <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+              <Route path="/chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
+
+              {/* Protected Admin Routes */}
+              <Route path="/admin" element={<AdminRoute><AdminDashboardPage /></AdminRoute>} />
+              <Route path="/admin/documents" element={<AdminRoute><AdminDocumentsPage /></AdminRoute>} />
+              <Route path="/admin/documents/upload" element={<AdminRoute><AdminDocumentUploadPage /></AdminRoute>} />
+              <Route path="/admin/documents/:id" element={<AdminRoute><AdminDocumentDetailPage /></AdminRoute>} />
+            </Routes>
+          </MainLayout>
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

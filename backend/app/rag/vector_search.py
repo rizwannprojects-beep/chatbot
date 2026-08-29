@@ -18,7 +18,7 @@ load_dotenv()
 logger = logging.getLogger("campusai.vector_search")
 
 DEFAULT_TOP_K = int(os.getenv("RAG_TOP_K", "4"))
-DEFAULT_SIMILARITY_THRESHOLD = float(os.getenv("RAG_SIMILARITY_THRESHOLD", "0.10"))
+DEFAULT_SIMILARITY_THRESHOLD = min(0.10, float(os.getenv("RAG_SIMILARITY_THRESHOLD", "0.10")))
 
 # ─────────────────────────────────────────────
 # In-process VECTOR CACHE: stores pre-parsed chunk vectors in RAM so we

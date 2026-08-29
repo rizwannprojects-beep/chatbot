@@ -146,8 +146,8 @@ def execute_rag_pipeline(
             return _save_and_return(conversation_id, answer, [], t0)
 
         # 3. Vector search
-        top_k     = int(os.getenv("RAG_TOP_K", "4"))
-        threshold = float(os.getenv("RAG_SIMILARITY_THRESHOLD", "0.10"))
+        raw_thresh = float(os.getenv("RAG_SIMILARITY_THRESHOLD", "0.10"))
+        threshold = min(0.10, raw_thresh)
 
         t_vec = time.perf_counter()
         retrieved = search_similar_chunks(query=cleaned, top_k=top_k, similarity_threshold=threshold)

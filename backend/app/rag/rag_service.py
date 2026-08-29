@@ -179,23 +179,19 @@ def execute_rag_pipeline(
     logger.info(f"Vector search: {len(retrieved)} chunks in {(time.perf_counter()-t_vec)*1000:.1f}ms")
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # STEP 4: LLM generation
+    # STEP 4: LLM generation (Always Dynamic)
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    if not retrieved:
-        answer = FALLBACK_RESPONSE
-        sources = []
-    else:
-        context_blocks = []
-        context_snippets = []
-        sources = []
+    context_blocks = []
+    context_snippets = []
+    sources = []
 
+    if retrieved:
         for idx, chunk in enumerate(retrieved, 1):
             doc_title = chunk.get("document_title", "Campus Document")
             page_num  = chunk.get("page_number", 1)
             content   = chunk.get("content", "")
             sim       = chunk.get("similarity", 0.0)
 
-            # Only include high-confidence chunks in LLM context (trim noise)
             context_blocks.append(f"[Doc {idx}: {doc_title}, p.{page_num}]\n{content}")
             context_snippets.append(content)
 
@@ -208,7 +204,6 @@ def execute_rag_pipeline(
                 "file_name":      chunk.get("file_name", ""),
             })
 
-        # Build lean, focused prompt (shorter = faster LLM)
         context_text = "\n\n".join(context_blocks)
         prompt = (
             f"{SYSTEM_PROMPT}\n\n"
@@ -216,10 +211,17 @@ def execute_rag_pipeline(
             f"=== STUDENT QUESTION ===\n{cleaned}\n\n"
             f"Answer:"
         )
+    else:
+        # Dynamic fallback: Use LLM to generate a helpful, polite, intelligent response
+        prompt = (
+            f"{SYSTEM_PROMPT}\n\n"
+            f"=== STUDENT QUESTION ===\n{cleaned}\n\n"
+            f"Provide a helpful, polite, calm, and well-structured answer explaining the information clearly."
+        )
 
-        t_llm = time.perf_counter()
-        answer = generate_grounded_answer(prompt, context_snippets)
-        logger.info(f"LLM generation: {(time.perf_counter()-t_llm)*1000:.1f}ms")
+    t_llm = time.perf_counter()
+    answer = generate_grounded_answer(prompt, context_snippets)
+    logger.info(f"LLM generation: {(time.perf_counter()-t_llm)*1000:.1f}ms")
 
     # Cache the result for future identical queries
     _cache_set(norm_q, {"answer": answer, "sources": sources})

@@ -9,7 +9,7 @@ from functools import lru_cache
 from dotenv import load_dotenv
 
 from app.ai.embedding_service import generate_embedding, EMBEDDING_DIMENSION
-from app.database.supabase import get_supabase_client
+from app.database.supabase import get_supabase_client, get_supabase_admin_client
 from app.database.db_service import LOCAL_DB_PATH
 
 load_dotenv()
@@ -153,7 +153,7 @@ def search_similar_chunks(
         return []
 
     # ── Try Supabase pgvector first (cloud, optimised index) ──
-    supabase = get_supabase_client()
+    supabase = get_supabase_admin_client() or get_supabase_client()
     if supabase:
         try:
             res = supabase.rpc(

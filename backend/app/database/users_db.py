@@ -5,7 +5,7 @@ import logging
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any
 from app.database.supabase import get_supabase_admin_client, get_supabase_client
-from app.database.db_service import LOCAL_DB_PATH
+LOCAL_DB_PATH = os.path.join(os.path.dirname(__file__), "local_campusai.db")
 
 logger = logging.getLogger("campusai.users_db")
 
@@ -142,3 +142,57 @@ def get_user_by_id(user_id: str) -> Optional[Dict[str, Any]]:
         return None
     finally:
         conn.close()
+
+def ensure_demo_users() -> None:
+    """
+    Ensures that default demo users (Student and Admin) exist in SQLite and Supabase
+    so the demo credentials shown on the login UI function seamlessly out of the box.
+    """
+    from app.auth.security import hash_password, verify_password
+    
+    demo_users = [
+        {
+            "name": "Demo Student",
+            "email": "student_test@college.edu",
+            "password": "studentpass123",
+            "role": "student"
+        },
+        {
+            "name": "Demo Admin",
+            "email": "admin_test@college.edu",
+            "password": "adminpass123",
+            "role": "admin"
+        }
+    ]
+
+    for demo in demo_users:
+        existing = get_user_by_email(demo["email"])
+        if not existing:
+            pwd_hash = hash_password(demo["password"])
+            create_user_record(
+                name=demo["name"],
+                email=demo["email"],
+                password_hash=pwd_hash,
+                role=demo["role"]
+            )
+            logger.info(f"Demo user created: {demo['email']} ({demo['role']})")
+        else:
+            if not verify_password(demo["password"], existing.get("password_hash", "")):
+                new_hash = hash_password(demo["password"])
+                try:
+                    conn = sqlite3.connect(LOCAL_DB_PATH, timeout=20.0)
+                    c = conn.cursor()
+                    c.execute("UPDATE users SET password_hash = ? WHERE email = ?", (new_hash, demo["email"]))
+                    conn.commit()
+                    conn.close()
+                    logger.info(f"Demo user password updated: {demo['email']}")
+                except Exception as e:
+                    logger.warning(f"Failed to update demo user password hash in SQLite: {e}")
+                
+                supabase = get_supabase_admin_client() or get_supabase_client()
+                if supabase:
+                    try:
+                        supabase.table("users").update({"password_hash": new_hash}).eq("email", demo["email"]).execute()
+                    except Exception as e:
+                        logger.warning(f"Failed to update demo user password hash in Supabase: {e}")
+

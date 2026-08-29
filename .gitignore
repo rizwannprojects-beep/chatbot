@@ -33,5 +33,7 @@ build/
 .DS_Store
 Thumbs.db
 *.db
+*.db-shm
+*.db-wal
 *.sqlite
 *.sqlite3

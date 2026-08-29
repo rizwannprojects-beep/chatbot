@@ -107,15 +107,24 @@ export default function LoginPage() {
           {/* Demo info */}
           <div style={{
             marginTop: 18, padding: '11px 13px', borderRadius: 11,
-            background: 'var(--green-muted)', border: '1px solid var(--green-border)'
+            background: 'var(--accent-muted)', border: '1px solid var(--accent-border)'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 5 }}>
-              <Sparkles size={11} color="var(--green)" />
-              <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--green-text)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Demo Credentials</span>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <Sparkles size={12} color="var(--accent)" />
+                <span style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--accent-text)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Demo Credentials</span>
+              </div>
+              <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Click to fill</span>
             </div>
-            <div style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.75 }}>
-              <div>Student: <code style={{ background: 'var(--accent-muted)', color: 'var(--accent-text)', padding: '1px 5px', borderRadius: 4, fontSize: 10.5 }}>student_test@college.edu</code> / <code style={{ background: 'var(--accent-muted)', color: 'var(--accent-text)', padding: '1px 5px', borderRadius: 4, fontSize: 10.5 }}>studentpass123</code></div>
-              <div style={{ marginTop: 2 }}>Admin: <code style={{ background: 'var(--amber-muted)', color: 'var(--amber-text)', padding: '1px 5px', borderRadius: 4, fontSize: 10.5 }}>admin_test@college.edu</code> / <code style={{ background: 'var(--amber-muted)', color: 'var(--amber-text)', padding: '1px 5px', borderRadius: 4, fontSize: 10.5 }}>adminpass123</code></div>
+            <div style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.8, display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <button type="button" onClick={() => { setEmail('student_test@college.edu'); setPassword('studentpass123'); setError(''); }}
+                style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left', cursor: 'pointer', color: 'inherit', fontFamily: 'inherit' }}>
+                Student: <code style={{ background: 'var(--bg-input)', color: 'var(--accent-text)', padding: '2px 6px', borderRadius: 4, fontSize: 10.5, border: '1px solid var(--border)' }}>student_test@college.edu</code> / <code style={{ background: 'var(--bg-input)', color: 'var(--accent-text)', padding: '2px 6px', borderRadius: 4, fontSize: 10.5, border: '1px solid var(--border)' }}>studentpass123</code>
+              </button>
+              <button type="button" onClick={() => { setEmail('admin_test@college.edu'); setPassword('adminpass123'); setError(''); }}
+                style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left', cursor: 'pointer', color: 'inherit', fontFamily: 'inherit' }}>
+                Admin: <code style={{ background: 'var(--bg-input)', color: 'var(--amber-text)', padding: '2px 6px', borderRadius: 4, fontSize: 10.5, border: '1px solid var(--border)' }}>admin_test@college.edu</code> / <code style={{ background: 'var(--bg-input)', color: 'var(--amber-text)', padding: '2px 6px', borderRadius: 4, fontSize: 10.5, border: '1px solid var(--border)' }}>adminpass123</code>
+              </button>
             </div>
           </div>
 

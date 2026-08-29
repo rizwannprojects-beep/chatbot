@@ -124,6 +124,12 @@ def init_db():
 
         conn.commit()
         conn.close()
+
+        try:
+            from app.database.users_db import ensure_demo_users
+            ensure_demo_users()
+        except Exception as e:
+            logger.warning(f"ensure_demo_users error: {e}")
     except Exception as e:
         logger.warning(f"init_db exception: {e}")
 

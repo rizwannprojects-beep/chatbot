@@ -31,8 +31,8 @@ export default function RegisterPage() {
       padding: 24, background: 'var(--bg)', position: 'relative', overflow: 'hidden'
     }}>
       {/* Glow blobs */}
-      <div style={{ position: 'absolute', top: -80, right: '5%', width: 420, height: 420, borderRadius: '50%', background: 'radial-gradient(circle, var(--green-muted) 0%, transparent 70%)', pointerEvents: 'none' }} />
-      <div style={{ position: 'absolute', bottom: -80, left: '0%', width: 360, height: 360, borderRadius: '50%', background: 'radial-gradient(circle, var(--accent-glow) 0%, transparent 70%)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', top: -120, left: '-5%', width: 480, height: 480, borderRadius: '50%', background: 'radial-gradient(circle, var(--accent-glow) 0%, transparent 70%)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', bottom: -80, right: '0%', width: 360, height: 360, borderRadius: '50%', background: 'radial-gradient(circle, var(--green-muted) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
       <div className="fade-in" style={{ width: '100%', maxWidth: 420, position: 'relative', zIndex: 1 }}>
         <div style={{
@@ -43,9 +43,9 @@ export default function RegisterPage() {
           <div style={{ textAlign: 'center', marginBottom: 26 }}>
             <div style={{
               width: 54, height: 54, borderRadius: 15, margin: '0 auto 15px',
-              background: 'var(--grad-green)',
+              background: 'var(--grad-accent)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 6px 20px var(--green-muted)'
+              boxShadow: 'var(--shadow-accent)'
             }}>
               <GraduationCap size={24} color="#fff" />
             </div>
@@ -99,8 +99,8 @@ export default function RegisterPage() {
               </label>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                 {[
-                  { val: 'student', label: 'Student', emoji: '🎓', activeVar: '--accent' },
-                  { val: 'admin', label: 'Administrator', emoji: '⚙️', activeVar: '--amber' },
+                  { val: 'student', label: 'Student', emoji: '🎓' },
+                  { val: 'admin', label: 'Administrator', emoji: '⚙️' },
                 ].map(opt => (
                   <button key={opt.val} type="button" onClick={() => setRole(opt.val)}
                     style={{
@@ -119,13 +119,10 @@ export default function RegisterPage() {
             </div>
             {/* Submit */}
             <button type="submit" disabled={loading}
+              className="btn-primary"
               style={{
-                width: '100%', padding: '13px', borderRadius: 13, border: 'none',
-                background: 'var(--grad-green)', color: '#fff',
-                fontFamily: 'Plus Jakarta Sans, sans-serif', fontWeight: 700, fontSize: 14,
-                cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                marginTop: 4, boxShadow: '0 4px 16px var(--green-muted)', transition: 'all 0.2s'
+                width: '100%', marginTop: 4, padding: '13px', borderRadius: 13, fontSize: 14,
+                opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer'
               }}>
               {loading
                 ? <><Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> Creating Account...</>

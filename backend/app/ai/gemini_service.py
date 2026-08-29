@@ -52,9 +52,9 @@ def _reset_client() -> httpx.Client:
 # Ordered model fallback chain — valid active Google AI models
 _MODELS_TO_TRY = [
     GEMINI_MODEL,
-    "gemini-2.5-flash",
-    "gemini-1.5-flash-latest",
-    "gemini-1.5-pro-latest",
+    "gemini-1.5-flash",
+    "gemini-2.0-flash",
+    "gemini-1.5-pro",
 ]
 
 # Connection-level errors that require client recreation
@@ -173,8 +173,8 @@ def _synthesize_from_context(context_snippets: List[str]) -> str:
     """
     if not context_snippets:
         return (
-            "Hello! 😊 I searched the official campus knowledge base, but I couldn't find the exact details for your specific query right now.\n\n"
-            "Feel free to ask me about admissions, fees, hostel curfew rules, or exam schedules — or contact the campus administration desk for assistance!"
+            "Hello! 😊 I'm CampusAI, your official college assistant. I am here to help you with all campus queries including **admissions, eligibility, fee structures, hostel curfew rules, examination schedules, placements, and library policies**.\n\n"
+            "Please ask your specific question (for example: *'What is the admission process?'* or *'What are the hostel curfew rules?'*) and I will gladly provide full details!"
         )
 
     try:
@@ -182,13 +182,13 @@ def _synthesize_from_context(context_snippets: List[str]) -> str:
         seen_lines = set()
         unique_bullets = []
 
-        for snippet in context_snippets[:5]:
+        for snippet in context_snippets:
             cleaned = str(snippet).strip()
             if not cleaned:
                 continue
             lines = [l.strip() for l in cleaned.split('\n') if l.strip()]
             for line in lines:
-                if len(line) < 6:
+                if len(line) < 4:
                     continue
                 norm = re.sub(r'^[0-9.#•*\-\s]+', '', line).strip().lower()
                 if norm not in seen_lines:
@@ -200,14 +200,13 @@ def _synthesize_from_context(context_snippets: List[str]) -> str:
         if unique_bullets:
             return (
                 intro
-                + "\n".join(unique_bullets[:12])
-                + "\n\n*If you need further details, feel free to ask or contact the campus administration desk!*"
+                + "\n".join(unique_bullets[:25])
+                + "\n\n*If you need further details or have additional questions, feel free to ask anytime!*"
             )
     except Exception as e:
         logger.error(f"Error during context synthesis: {e}")
 
-    # Fallback to simple snippet formatting if regex or loop fails
-    bullets = [f"• {s.strip()[:300]}" for s in context_snippets[:3] if s.strip()]
+    bullets = [f"• {s.strip()[:300]}" for s in context_snippets if s.strip()]
     if bullets:
         return "Hello! 😊 Based on official campus documents:\n\n" + "\n\n".join(bullets)
     return "Hello! 😊 I'm here to help! Please ask me about admissions, fees, hostel rules, or exams!"

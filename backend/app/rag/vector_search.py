@@ -3,6 +3,7 @@ import sqlite3
 import json
 import math
 import logging
+import re
 import hashlib
 from typing import List, Dict, Any, Optional
 from functools import lru_cache
@@ -17,7 +18,7 @@ load_dotenv()
 logger = logging.getLogger("campusai.vector_search")
 
 DEFAULT_TOP_K = int(os.getenv("RAG_TOP_K", "6"))
-DEFAULT_SIMILARITY_THRESHOLD = float(os.getenv("RAG_SIMILARITY_THRESHOLD", "0.25"))
+DEFAULT_SIMILARITY_THRESHOLD = float(os.getenv("RAG_SIMILARITY_THRESHOLD", "0.05"))
 
 # ─────────────────────────────────────────────
 # In-process VECTOR CACHE: stores pre-parsed chunk vectors in RAM so we
@@ -202,6 +203,44 @@ def search_similar_chunks(
         }
         for sim, c in top
     ]
+
+    # ── Hybrid Fallback: Keyword search over in-RAM chunks if vector sim returned 0 ──
+    if not results and _VECTOR_CACHE:
+        words = [w for w in re.findall(r"\w+", query.lower()) if len(w) > 2 and w not in ("what", "when", "where", "with", "from", "that", "this", "your")]
+        matched_chunks = []
+        for c in _VECTOR_CACHE:
+            content_lower = c["content"].lower()
+            doc_title_lower = c["document_title"].lower()
+            cat_lower = c["document_category"].lower()
+            
+            score = 0
+            for w in words:
+                if w in doc_title_lower:
+                    score += 5
+                if w in cat_lower:
+                    score += 4
+                if w in content_lower:
+                    score += 2
+            
+            if score > 0:
+                matched_chunks.append((score, c))
+        
+        matched_chunks.sort(key=lambda x: x[0], reverse=True)
+        results = [
+            {
+                "id": c["id"],
+                "document_id": c["document_id"],
+                "chunk_index": c["chunk_index"],
+                "content": c["content"],
+                "page_number": c["page_number"],
+                "metadata": c["metadata"],
+                "similarity": round(min(0.95, 0.5 + score * 0.1), 4),
+                "document_title": c["document_title"],
+                "document_category": c["document_category"],
+                "file_name": c["file_name"],
+            }
+            for score, c in matched_chunks[:limit]
+        ]
 
     _cache_search_result(q_hash, results)
     return results

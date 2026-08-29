@@ -165,7 +165,7 @@ def execute_rag_pipeline(
     # STEP 3: Vector search (RAM-cached chunks)
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     top_k     = int(os.getenv("RAG_TOP_K", "6"))
-    threshold = float(os.getenv("RAG_SIMILARITY_THRESHOLD", "0.25"))
+    threshold = float(os.getenv("RAG_SIMILARITY_THRESHOLD", "0.05"))
 
     t_vec = time.perf_counter()
     retrieved = search_similar_chunks(query=cleaned, top_k=top_k, similarity_threshold=threshold)

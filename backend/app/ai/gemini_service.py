@@ -171,10 +171,10 @@ def _synthesize_from_context(context_snippets: List[str], question: Optional[str
     when the LLM API is unavailable.
     """
     if not context_snippets:
-        topic_clause = f" for **\"{question}\"**" if question else ""
+        topic_clause = f" regarding **\"{question}\"**" if question else ""
         return (
-            f"I searched the official campus knowledge base, but I couldn't find specific details{topic_clause}.\n\n"
-            "Please check with the Campus Support Desk or ask about admissions, hostel rules, fees, or examinations!"
+            f"I searched the official campus knowledge base, but verified details{topic_clause} were not found in official campus documents.\n\n"
+            "Please check with the Campus Support Desk or reach out to the administrative department for assistance."
         )
 
     try:

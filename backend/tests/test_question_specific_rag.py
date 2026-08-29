@@ -41,7 +41,13 @@ class TestQuestionSpecificRAGPipeline(unittest.TestCase):
             json={"question": question}
         )
         self.assertEqual(res.status_code, 200)
-        return res.json()
+        data = res.json()
+        sources = data.get("sources", [])
+        top_score = sources[0].get("similarity", 0.0) if sources else 0.0
+        print(f"\n[TEST QUERY] '{question}'")
+        print(f"   -> Top Similarity Score: {top_score:.4f} | Retrieved Sources ({len(sources)}): {[s.get('document_title') for s in sources]}")
+        print(f"   -> Answer Snippet: {data.get('answer', '')[:120]}...")
+        return data
 
     def test_01_attendance_query_focus(self):
         data = self.ask("What is the minimum attendance required?")

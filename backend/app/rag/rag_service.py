@@ -188,11 +188,12 @@ def execute_rag_pipeline(
             answer = generate_grounded_answer(prompt, context_snippets, question=cleaned)
             logger.info(f"LLM generation: {(time.perf_counter()-t_llm)*1000:.1f}ms")
         else:
-            # Generate intelligent, structured, comprehensive response for any query or keyword
+            # Fallback when official documents do not contain relevant details
             fallback_prompt = (
-                f"{SYSTEM_PROMPT}\n\n"
+                f"SYSTEM: You are CampusAI, an official campus assistant. You MUST stay strictly grounded in official documents.\n"
+                f"CRITICAL INSTRUCTION: Do not invent, fabricate, or estimate any specific figures, fee amounts, dates, or campus rules under any circumstances.\n\n"
                 f"=== STUDENT QUESTION ===\n{cleaned}\n\n"
-                f"Provide a clear, accurate, structured, and comprehensive answer detailing the policies, rules, placement statistics, procedures, or guidelines for this topic."
+                f"State clearly that official details regarding '{cleaned}' were not found in the campus knowledge base and direct the student to the Campus Support Desk."
             )
             t_llm = time.perf_counter()
             answer = generate_grounded_answer(fallback_prompt, [], question=cleaned)

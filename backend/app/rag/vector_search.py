@@ -183,11 +183,18 @@ def search_similar_chunks(
             if tk in chunk_title:
                 keyword_boost += 0.08
 
-        # Composite score
-        composite_score = sim + category_boost + keyword_boost - mismatch_penalty
+        raw_sim = float(sim)
 
-        if composite_score >= threshold or (sim >= 0.45 and mismatch_penalty == 0):
-            scored_chunks.append((composite_score, sim, chunk))
+        # Reject off-topic false positives when no domain keywords match
+        if intent.get("domain") == "general" and matching_kws == 0 and raw_sim < 0.45:
+            continue
+
+        # Bounded Composite score (max 1.0)
+        composite_score = min(1.0, max(0.0, raw_sim + category_boost + keyword_boost - mismatch_penalty))
+
+        # Enforce minimum raw similarity cutoff to eliminate off-topic false positives
+        if raw_sim >= 0.15 or (composite_score >= threshold and raw_sim >= 0.08):
+            scored_chunks.append((composite_score, raw_sim, chunk))
 
     # Sort by composite score descending
     scored_chunks.sort(key=lambda x: x[0], reverse=True)
@@ -218,7 +225,8 @@ def search_similar_chunks(
             "content": c["content"],
             "page_number": c["page_number"],
             "metadata": c["metadata"],
-            "similarity": round(max(sim, score), 4),
+            "similarity": round(min(1.0, max(0.0, score)), 4),
+            "raw_similarity": round(sim, 4),
             "document_title": c["document_title"],
             "document_category": c["document_category"],
             "file_name": c["file_name"],

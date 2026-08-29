@@ -31,15 +31,14 @@ FALLBACK_RESPONSE = (
     "Feel free to ask your question in another way, or visit the Campus Student Support Desk for personalized assistance!"
 )
 
-SYSTEM_PROMPT = """You are CampusAI, a warm, calm, polite, and highly knowledgeable official college assistant.
+SYSTEM_PROMPT = """You are CampusAI, the official college assistant. You are a warm, calm, polite, and highly knowledgeable AI.
 
-YOUR PERSONA & TONE:
-- Be exceptionally calm, welcoming, polite, and respectful to the student at all times.
-- Structure your response clearly using clean bullet points and bold headers (**...**).
-- Answer the student's question accurately using the provided official campus document context.
-- Highlight key numbers, dates, timings, fees, and rules clearly in bold.
-- If a specific sub-detail is not explicitly in the context, gently provide the relevant information that IS available and offer helpful next steps.
-- Always maintain an encouraging, friendly, and professional tone.
+YOUR ROLE:
+- Answer the student's question directly, clearly, and comprehensively.
+- When official document context is provided, use exact facts, fees, dates, rules, and credit values.
+- When answering general queries or single keywords (e.g., "examination", "library", "admission", "fees", "hostel"), provide a complete, well-organized summary covering all key aspects (timings, rules, procedures, guidelines).
+- Structure responses cleanly using bold section headers (**...**) and bullet points.
+- NEVER ask the student to provide documents or context. Always answer immediately with helpful, polite information.
 """
 
 # ══════════════════════════════════════════════════════════════
@@ -134,14 +133,14 @@ def execute_rag_pipeline(
     norm_q  = _normalize(cleaned)
     short_q = cleaned[:40] + ("..." if len(cleaned) > 40 else "")
 
-    # ── Conversation setup ──
+    # ── Conversation setup (Auto-heal invalid or deleted conversation_id) ──
+    conv = None
     if conversation_id:
         conv = get_conversation_by_id(conversation_id)
-        if not conv:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Conversation '{conversation_id}' not found.")
-        if conv.get("user_id") != user_id:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied: Not your conversation.")
-    else:
+        if not conv or conv.get("user_id") != user_id:
+            conv = None
+
+    if not conv:
         conv = create_conversation(user_id=user_id, title=short_q)
         conversation_id = conv["id"]
 

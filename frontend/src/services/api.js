@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Normalize API_BASE_URL: strip trailing slash and optional trailing /api
-let rawBase = (import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000').trim().replace(/\/+$/, '');
+let rawBase = (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000').trim().replace(/\/+$/, '');
 if (rawBase.endsWith('/api')) {
   rawBase = rawBase.slice(0, -4);
 }

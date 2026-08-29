@@ -116,92 +116,106 @@ def execute_rag_pipeline(
     norm_q  = _normalize(cleaned)
     short_q = cleaned[:40] + ("..." if len(cleaned) > 40 else "")
 
-    conv = None
-    if conversation_id:
-        conv = get_conversation_by_id(conversation_id)
-        if not conv or conv.get("user_id") != user_id:
-            conv = None
+    try:
+        conv = None
+        if conversation_id:
+            conv = get_conversation_by_id(conversation_id)
+            if not conv or conv.get("user_id") != user_id:
+                conv = None
 
-    if not conv:
-        conv = create_conversation(user_id=user_id, title=short_q)
-        conversation_id = conv["id"]
+        if not conv:
+            conv = create_conversation(user_id=user_id, title=short_q)
+            conversation_id = conv["id"]
 
-    add_message(conversation_id=conversation_id, sender="user", content=cleaned, sources=None)
+        add_message(conversation_id=conversation_id, sender="user", content=cleaned, sources=None)
 
-    # 1. Greetings
-    if norm_q in _GREETINGS:
-        answer = _GREETINGS[norm_q]
-        return _save_and_return(conversation_id, answer, [], t0)
+        # 1. Greetings
+        if norm_q in _GREETINGS:
+            answer = _GREETINGS[norm_q]
+            return _save_and_return(conversation_id, answer, [], t0)
 
-    for greeting_key, greeting_val in _GREETINGS.items():
-        if norm_q.startswith(greeting_key) and len(norm_q) < len(greeting_key) + 8:
-            return _save_and_return(conversation_id, greeting_val, [], t0)
+        for greeting_key, greeting_val in _GREETINGS.items():
+            if norm_q.startswith(greeting_key) and len(norm_q) < len(greeting_key) + 8:
+                return _save_and_return(conversation_id, greeting_val, [], t0)
 
-    # 2. Intent & Ambiguity Check
-    from app.rag.intent_service import analyze_query_intent
-    intent = analyze_query_intent(cleaned)
-    if intent["is_ambiguous"]:
-        answer = intent["clarification_message"]
-        return _save_and_return(conversation_id, answer, [], t0)
+        # 2. Intent & Ambiguity Check
+        from app.rag.intent_service import analyze_query_intent
+        intent = analyze_query_intent(cleaned)
+        if intent["is_ambiguous"]:
+            answer = intent["clarification_message"]
+            return _save_and_return(conversation_id, answer, [], t0)
 
-    # 3. Vector search
-    top_k     = int(os.getenv("RAG_TOP_K", "4"))
-    threshold = float(os.getenv("RAG_SIMILARITY_THRESHOLD", "0.20"))
+        # 3. Vector search
+        top_k     = int(os.getenv("RAG_TOP_K", "4"))
+        threshold = float(os.getenv("RAG_SIMILARITY_THRESHOLD", "0.10"))
 
-    t_vec = time.perf_counter()
-    retrieved = search_similar_chunks(query=cleaned, top_k=top_k, similarity_threshold=threshold)
-    logger.info(f"Vector search: {len(retrieved)} chunks in {(time.perf_counter()-t_vec)*1000:.1f}ms")
+        t_vec = time.perf_counter()
+        retrieved = search_similar_chunks(query=cleaned, top_k=top_k, similarity_threshold=threshold)
+        logger.info(f"Vector search: {len(retrieved)} chunks in {(time.perf_counter()-t_vec)*1000:.1f}ms")
 
-    # 4. Prompt & Answer Generation
-    context_blocks = []
-    context_snippets = []
-    sources = []
+        # 4. Prompt & Answer Generation
+        context_blocks = []
+        context_snippets = []
+        sources = []
 
-    if retrieved:
-        for idx, chunk in enumerate(retrieved, 1):
-            doc_title = chunk.get("document_title", "Campus Document")
-            page_num  = chunk.get("page_number", 1)
-            content   = chunk.get("content", "")
-            sim       = chunk.get("similarity", 0.0)
+        if retrieved:
+            for idx, chunk in enumerate(retrieved, 1):
+                doc_title = chunk.get("document_title", "Campus Document")
+                page_num  = chunk.get("page_number", 1)
+                content   = chunk.get("content", "")
+                sim       = chunk.get("similarity", 0.0)
 
-            context_blocks.append(f"[Doc {idx}: {doc_title}, p.{page_num}]\n{content}")
-            context_snippets.append(content)
+                context_blocks.append(f"[Doc {idx}: {doc_title}, p.{page_num}]\n{content}")
+                context_snippets.append(content)
 
-            sources.append({
-                "document_title": doc_title,
-                "document_id":    chunk.get("document_id", ""),
-                "page_number":    page_num,
-                "snippet":        content[:220] + ("..." if len(content) > 220 else ""),
-                "similarity":     sim,
-                "file_name":      chunk.get("file_name", ""),
-            })
+                sources.append({
+                    "document_title": doc_title,
+                    "document_id":    chunk.get("document_id", ""),
+                    "page_number":    page_num,
+                    "snippet":        content[:220] + ("..." if len(content) > 220 else ""),
+                    "similarity":     sim,
+                    "file_name":      chunk.get("file_name", ""),
+                })
 
-        context_text = "\n\n".join(context_blocks)
-        prompt = (
-            f"{SYSTEM_PROMPT}\n\n"
-            f"=== OFFICIAL DOCUMENT CONTEXT ===\n{context_text}\n\n"
-            f"=== STUDENT QUESTION ===\n{cleaned}\n\n"
-            f"Question-Specific Answer:"
-        )
-        t_llm = time.perf_counter()
-        answer = generate_grounded_answer(prompt, context_snippets, question=cleaned)
-        logger.info(f"LLM generation: {(time.perf_counter()-t_llm)*1000:.1f}ms")
-    else:
-        # Generate intelligent, structured, comprehensive response for any query or keyword
+            context_text = "\n\n".join(context_blocks)
+            prompt = (
+                f"{SYSTEM_PROMPT}\n\n"
+                f"=== OFFICIAL DOCUMENT CONTEXT ===\n{context_text}\n\n"
+                f"=== STUDENT QUESTION ===\n{cleaned}\n\n"
+                f"Question-Specific Answer:"
+            )
+            t_llm = time.perf_counter()
+            answer = generate_grounded_answer(prompt, context_snippets, question=cleaned)
+            logger.info(f"LLM generation: {(time.perf_counter()-t_llm)*1000:.1f}ms")
+        else:
+            # Generate intelligent, structured, comprehensive response for any query or keyword
+            fallback_prompt = (
+                f"{SYSTEM_PROMPT}\n\n"
+                f"=== STUDENT QUESTION ===\n{cleaned}\n\n"
+                f"Provide a clear, accurate, structured, and comprehensive answer detailing the policies, rules, placement statistics, procedures, or guidelines for this topic."
+            )
+            t_llm = time.perf_counter()
+            answer = generate_grounded_answer(fallback_prompt, [], question=cleaned)
+            logger.info(f"Fallback LLM generation: {(time.perf_counter()-t_llm)*1000:.1f}ms")
+            sources = []
+
+        total_ms = (time.perf_counter() - t0) * 1000
+        logger.info(f"Total RAG pipeline: {total_ms:.1f}ms for '{short_q}'")
+
+        return _save_and_return(conversation_id, answer, sources, t0)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error in execute_rag_pipeline: {type(e).__name__}: {e}")
         fallback_prompt = (
             f"{SYSTEM_PROMPT}\n\n"
             f"=== STUDENT QUESTION ===\n{cleaned}\n\n"
             f"Provide a clear, accurate, structured, and comprehensive answer detailing the policies, rules, placement statistics, procedures, or guidelines for this topic."
         )
-        t_llm = time.perf_counter()
         answer = generate_grounded_answer(fallback_prompt, [], question=cleaned)
-        logger.info(f"Fallback LLM generation: {(time.perf_counter()-t_llm)*1000:.1f}ms")
-        sources = []
-
-    total_ms = (time.perf_counter() - t0) * 1000
-    logger.info(f"Total RAG pipeline: {total_ms:.1f}ms for '{short_q}'")
-
-    return _save_and_return(conversation_id, answer, sources, t0)
+        cid = conversation_id or str(uuid.uuid4())
+        return _save_and_return(cid, answer, [], t0)
 
 
 def _save_and_return(

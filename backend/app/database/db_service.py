@@ -403,11 +403,14 @@ def touch_conversation_updated_at(conversation_id: str):
         except Exception as e:
             logger.warning(f"Supabase update conversation timestamp failed ({e}); using local store.")
 
-    conn = sqlite3.connect(LOCAL_DB_PATH, timeout=20.0)
-    cursor = conn.cursor()
-    cursor.execute("UPDATE conversations SET updated_at = ? WHERE id = ?", (now, conversation_id))
-    conn.commit()
-    conn.close()
+    try:
+        conn = sqlite3.connect(LOCAL_DB_PATH, timeout=20.0)
+        cursor = conn.cursor()
+        cursor.execute("UPDATE conversations SET updated_at = ? WHERE id = ?", (now, conversation_id))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        logger.warning(f"Local touch_conversation_updated_at failed: {e}")
 
 def get_user_conversations(user_id: str) -> List[Dict[str, Any]]:
     supabase = get_supabase_client()
@@ -479,15 +482,25 @@ def add_message(
         except Exception as e:
             logger.warning(f"Supabase message insert failed ({e}); using local database.")
 
-    conn = sqlite3.connect(LOCAL_DB_PATH, timeout=20.0)
-    conn.execute("PRAGMA foreign_keys = ON;")
-    cursor = conn.cursor()
-    cursor.execute("""
-        INSERT INTO messages (id, conversation_id, role, content, sources, created_at)
-        VALUES (?, ?, ?, ?, ?, ?)
-    """, (msg_id, conversation_id, msg_role, content, sources_json, now))
-    conn.commit()
-    conn.close()
+    try:
+        conn = sqlite3.connect(LOCAL_DB_PATH, timeout=20.0)
+        cursor = conn.cursor()
+        cursor.execute("SELECT id FROM conversations WHERE id = ?", (conversation_id,))
+        if not cursor.fetchone():
+            cursor.execute("""
+                INSERT OR IGNORE INTO conversations (id, user_id, title, created_at, updated_at)
+                VALUES (?, 'unknown_user', 'New Chat', ?, ?)
+            """, (conversation_id, now, now))
+
+        cursor.execute("""
+            INSERT INTO messages (id, conversation_id, role, content, sources, created_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (msg_id, conversation_id, msg_role, content, sources_json, now))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        logger.error(f"Local message insert exception: {e}")
+
     return {
         "id": msg_id,
         "conversation_id": conversation_id,

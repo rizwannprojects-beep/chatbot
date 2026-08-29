@@ -160,13 +160,7 @@ def execute_rag_pipeline(
         if norm_q.startswith(greeting_key) and len(norm_q) < len(greeting_key) + 8:
             return _save_and_return(conversation_id, greeting_val, [], t0)
 
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # FAST-PATH 2: Response cache
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    cached = _cache_get(norm_q)
-    if cached:
-        logger.info(f"Cache HIT for '{short_q}' ({(time.perf_counter()-t0)*1000:.1f}ms)")
-        return _save_and_return(conversation_id, cached["answer"], cached["sources"], t0)
+    # (Bypassing static response cache to ensure fresh dynamic LLM generation on every query)
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # STEP 3: Vector search (RAM-cached chunks)
@@ -223,9 +217,7 @@ def execute_rag_pipeline(
     answer = generate_grounded_answer(prompt, context_snippets)
     logger.info(f"LLM generation: {(time.perf_counter()-t_llm)*1000:.1f}ms")
 
-    # Cache the result for future identical queries
-    _cache_set(norm_q, {"answer": answer, "sources": sources})
-
+    # Return live generated response
     total_ms = (time.perf_counter() - t0) * 1000
     logger.info(f"Total RAG pipeline: {total_ms:.1f}ms for '{short_q}'")
 

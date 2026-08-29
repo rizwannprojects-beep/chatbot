@@ -21,19 +21,25 @@ logger = logging.getLogger("campusai.rag_service")
 # ══════════════════════════════════════════════════════════════
 
 FALLBACK_RESPONSE = (
-    "I could not find reliable information about your query in the official campus knowledge base. "
-    "Please contact the campus administration or student support desk for assistance."
+    "Hello! 😊 I searched the official campus knowledge base, but I couldn't find the exact details for your specific query right now.\n\n"
+    "I can gladly help you with any of the following campus topics:\n"
+    "• **Admissions & Eligibility**: B.Tech, UG/PG courses, required documents, and 2026 deadlines.\n"
+    "• **Hostel Rules & Curfew**: Curfew times (8:30 PM girls / 9:30 PM boys), gate passes, and mess fees.\n"
+    "• **Fees & Scholarships**: Semester tuition fees, installment dates, and government scholarship portals.\n"
+    "• **Exams & Grading**: Internal assessments, 10-point CGPA grading scale, and revaluation procedures.\n"
+    "• **Placements & Internships**: TPC registration, dream company rules, and campus drive eligibility.\n\n"
+    "Feel free to ask your question in another way, or visit the Campus Student Support Desk for personalized assistance!"
 )
 
-# Tight, minimal system prompt — shorter prompt = faster token processing
-SYSTEM_PROMPT = """You are CampusAI, the official college assistant. Answer the student's question ONLY using the provided official document context.
+SYSTEM_PROMPT = """You are CampusAI, a warm, calm, polite, and highly knowledgeable official college assistant.
 
-RULES:
-- Be direct and specific. Lead with the most important fact.
-- Use bullet points for lists of rules, fees, dates, or steps.
-- Bold (**) important numbers, dates, deadlines, and amounts.
-- If info is missing from context, say: "This specific detail wasn't found in the documents. Contact the administration office."
-- Keep response concise but complete. No unnecessary filler sentences.
+YOUR PERSONA & TONE:
+- Be exceptionally calm, welcoming, polite, and respectful to the student at all times.
+- Structure your response clearly using clean bullet points and bold headers (**...**).
+- Answer the student's question accurately using the provided official campus document context.
+- Highlight key numbers, dates, timings, fees, and rules clearly in bold.
+- If a specific sub-detail is not explicitly in the context, gently provide the relevant information that IS available and offer helpful next steps.
+- Always maintain an encouraging, friendly, and professional tone.
 """
 
 # ══════════════════════════════════════════════════════════════
@@ -166,7 +172,7 @@ def execute_rag_pipeline(
     # STEP 3: Vector search (RAM-cached chunks)
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     top_k     = int(os.getenv("RAG_TOP_K", "6"))
-    threshold = float(os.getenv("RAG_SIMILARITY_THRESHOLD", "0.32"))
+    threshold = float(os.getenv("RAG_SIMILARITY_THRESHOLD", "0.25"))
 
     t_vec = time.perf_counter()
     retrieved = search_similar_chunks(query=cleaned, top_k=top_k, similarity_threshold=threshold)

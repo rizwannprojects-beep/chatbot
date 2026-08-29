@@ -173,12 +173,12 @@ def _synthesize_from_context(context_snippets: List[str]) -> str:
     """
     if not context_snippets:
         return (
-            "I could not find reliable information about your query in the official campus "
-            "knowledge base. Please contact the campus administration or student support desk."
+            "Hello! 😊 I searched the official campus knowledge base, but I couldn't find the exact details for your specific query right now.\n\n"
+            "Feel free to ask me about admissions, fees, hostel curfew rules, or exam schedules — or contact the campus administration desk for assistance!"
         )
 
     try:
-        intro = "Based on official campus documents, here is the relevant information:\n\n"
+        intro = "Hello! 😊 Based on official campus documents, here is the relevant information for you:\n\n"
         seen_lines = set()
         unique_bullets = []
 
@@ -200,8 +200,8 @@ def _synthesize_from_context(context_snippets: List[str]) -> str:
         if unique_bullets:
             return (
                 intro
-                + "\n".join(unique_bullets[:10])
-                + "\n\n*For complete details, please refer to official campus circulars or contact the administration office.*"
+                + "\n".join(unique_bullets[:12])
+                + "\n\n*If you need further details, feel free to ask or contact the campus administration desk!*"
             )
     except Exception as e:
         logger.error(f"Error during context synthesis: {e}")
@@ -209,5 +209,5 @@ def _synthesize_from_context(context_snippets: List[str]) -> str:
     # Fallback to simple snippet formatting if regex or loop fails
     bullets = [f"• {s.strip()[:300]}" for s in context_snippets[:3] if s.strip()]
     if bullets:
-        return "Based on official campus documents:\n\n" + "\n\n".join(bullets)
-    return "I could not find reliable information about your query in the official campus knowledge base."
+        return "Hello! 😊 Based on official campus documents:\n\n" + "\n\n".join(bullets)
+    return "Hello! 😊 I'm here to help! Please ask me about admissions, fees, hostel rules, or exams!"

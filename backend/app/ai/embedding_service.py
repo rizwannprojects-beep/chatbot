@@ -12,8 +12,8 @@ load_dotenv()
 logger = logging.getLogger("campusai.embedding_service")
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-GEMINI_EMBEDDING_MODEL = os.getenv("GEMINI_EMBEDDING_MODEL", "gemini-embedding-001")
-EMBEDDING_DIMENSION = 3072
+GEMINI_EMBEDDING_MODEL = os.getenv("GEMINI_EMBEDDING_MODEL", "text-embedding-004")
+EMBEDDING_DIMENSION = int(os.getenv("EMBEDDING_DIMENSION", "768"))
 
 GEMINI_EMBED_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_EMBEDDING_MODEL}:embedContent"
 
@@ -69,11 +69,12 @@ def generate_embedding(text: str) -> List[float]:
         if response.status_code == 200:
             data = response.json()
             embedding_values = data.get("embedding", {}).get("values", [])
-            if len(embedding_values) == EMBEDDING_DIMENSION:
-                return embedding_values
-            else:
-                logger.warning(f"Unexpected embedding dimension {len(embedding_values)}; expected {EMBEDDING_DIMENSION}")
+            if len(embedding_values) >= EMBEDDING_DIMENSION:
                 return embedding_values[:EMBEDDING_DIMENSION]
+            elif len(embedding_values) > 0:
+                return embedding_values + [0.0] * (EMBEDDING_DIMENSION - len(embedding_values))
+            else:
+                return _generate_fallback_vector(cleaned_text, EMBEDDING_DIMENSION)
         else:
             logger.error(f"Gemini Embedding API returned HTTP {response.status_code}: {response.text}")
             return _generate_fallback_vector(cleaned_text, EMBEDDING_DIMENSION)

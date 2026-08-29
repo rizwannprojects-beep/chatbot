@@ -1,10 +1,10 @@
 """
 Comprehensive Seed Script for CampusAI Database
-Populates local SQLite database with realistic, highly detailed college regulations,
-rules, hostel policies, examination rules, fee structures, placement policies,
-library rules, IT guidelines, and extracurricular frameworks based on top Indian institutes.
+Populates local SQLite database and Supabase Cloud Database with realistic, highly detailed
+college regulations, rules, hostel policies, examination rules, fee structures, placement policies,
+library rules, IT guidelines, admissions processes, scholarships, and campus frameworks.
 
-Run: .\.venv\Scripts\python seed_comprehensive_college_data.py
+Run: python seed_comprehensive_college_data.py
 """
 
 import os
@@ -149,200 +149,351 @@ Minimum Internal Requirement: A student must secure a minimum of 45% (18 out of 
 - Lunch: 12:30 PM to 1:45 PM
 - Evening Tea & Snacks: 4:30 PM to 5:30 PM
 - Dinner: 7:30 PM to 9:00 PM
-2. Mess Charges: Operates on a dividing system. Average monthly mess bill is approximately Rs. 3,800 to Rs. 4,200 depending on actual monthly consumption.
-3. Quiet Study Hours: 10:00 PM to 6:00 AM. Playing loud music, shouting, or causing disturbance during quiet hours is strictly prohibited.
-4. Visitors Policy: Parents and local guardians can visit students in the designated Hostel Visitor Lobby between 4:00 PM and 6:30 PM. No visitor or guest is permitted inside student rooms under any circumstances."""
+2. Mess Bill & Fee Structure: Monthly mess bill is calculated on a dividing system basis (approx. Rs. 3,800 to Rs. 4,500 per month). Mess bill must be paid by the 10th of every month. Late fee of Rs. 50 per day applies after due date.
+3. Quiet Hours: 10:00 PM to 6:00 AM is designated quiet hours. Playing loud music, shouting, or causing disturbance in corridors is strictly forbidden."""
             },
             {
                 "page": 3,
-                "content": """Prohibited Items and Safety Regulations in Hostels:
-1. Electric Appliances: Possession or use of high-wattage electrical items such as electric kettles, induction stoves, room heaters, iron boxes, and immersion rods is strictly forbidden inside rooms. Violators face a fine of Rs. 1,000 and confiscation of the appliance.
-2. Alcohol, Tobacco & Substance Abuse: Possession, sale, or consumption of liquor, cigarettes, e-cigarettes, or drugs inside hostel premises is a zero-tolerance offence resulting in immediate expulsion from the hostel, 1-year academic suspension, and reporting to law enforcement.
-3. Room Maintenance: Students are responsible for furniture provided (cot, study table, chair, cupboard). Damage to property will be deducted from the hostel caution deposit."""
+                "content": """Hostel Visitors, Maintenance and Disciplinary Rules:
+1. Guest Policy: Parents and authorized local guardians may visit hostellers in the Hostel Visitor Room between 4:30 PM and 6:30 PM on working days, and 10:00 AM to 6:00 PM on holidays. No male visitors are permitted inside Girls' Hostel rooms.
+2. Prohibited Items: Electric heaters, hot plates, immersion rods, air conditioners, alcohol, tobacco, contraband, and dangerous weapons are strictly banned. Violation leads to immediate eviction and Rs. 5,000 fine.
+3. Room Allocation: Rooms are allocated annually on merit-cum-distance basis during semester registration."""
             }
         ]
     },
     {
         "id": str(uuid.uuid4()),
         "title": "Fee Structure, Payment Deadlines and Scholarship Schemes",
-        "description": "Tuition fees for Govt/Management/NRI quotas, hostel fee structure, caution deposit refund procedure, E-Grantz, NSP, and Tuition Fee Waiver (TFW) schemes.",
+        "description": "Tuition fees for B.Tech, M.Tech, MCA, MBA, hostel fees, payment schedules, penalty for late payment, refund rules, and merit/means scholarships.",
         "category": "Fees & Scholarships",
         "file_name": "fee_structure_scholarships.pdf",
         "chunks": [
             {
                 "page": 1,
-                "content": """Annual Tuition and Special Fee Structure:
-1. B.Tech Tuition Fee (Annual):
-- Merit Quota (Govt Allotment): Rs. 35,000 per year.
-- Management Quota: Rs. 65,000 per year.
-- NRI Quota: Rs. 1,00,000 per year.
-2. University & Special Fees (Annual):
-- University Registration & Exam Fee: Rs. 3,200 / year
-- Special Fees (Lab, Library, Sports, Cultural): Rs. 4,500 / year
-- One-time Caution Deposit (Refundable at degree completion): Rs. 5,000
-3. Payment Schedule: Semester fees must be paid within 15 working days of semester commencement. Late fee penalty: Rs. 50 per day for first 10 days, Rs. 100 per day thereafter."""
+                "content": """Tuition Fee Structure (Per Semester):
+1. B.Tech (Merit Seat): Rs. 37,500 per semester.
+2. B.Tech (Management Seat): Rs. 65,000 per semester.
+3. B.Tech (NRI Quota): Rs. 1,00,000 per semester.
+4. M.Tech / MCA: Rs. 42,000 per semester.
+5. MBA: Rs. 55,000 per semester.
+6. Other Annual One-Time Fees: Admission Fee: Rs. 1,500; Caution Deposit (Refundable): Rs. 10,000; University Exam Registration: Rs. 1,800 per semester; Library & Internet Fee: Rs. 2,500/year; Student Insurance: Rs. 500/year."""
             },
             {
                 "page": 2,
-                "content": """Scholarships and Financial Assistance Schemes:
-1. Tuition Fee Waiver (TFW) Scheme: 5% supernumerary seats in every branch are reserved under TFW. Full tuition fee waiver is provided to merit students whose annual family income is below Rs. 8.0 Lakhs.
-2. E-Grantz Scholarship: Full fee exemption and monthly stipend for SC, ST, OEC, and eligible OBC students awarded by the State Government.
-3. National Scholarship Portal (NSP): Central Sector Scheme for university students securing above 80th percentile in Higher Secondary exams. Financial aid of Rs. 12,000 per year for UG degree.
-4. Merit Cum Means (MCM) Scholarship: Awarded to minority community students with family income < Rs. 2.5 Lakhs/year and minimum 50% marks."""
+                "content": """Payment Deadlines, Penalties and Scholarship Schemes:
+1. Fee Payment Schedule: Semester fees must be paid online via the SBI Collect / Student Portal within 15 days from the date of semester commencement.
+2. Late Payment Penalty:
+- First 10 days post due date: Fine of Rs. 100 per day.
+- Next 15 days: Fine of Rs. 250 per day.
+- Beyond 25 days: Student name is removed from roll calls and portal login is suspended until cleared with HOD approval.
+3. Institutional Scholarships:
+- Merit Scholarship: 100% tuition fee waiver for top 3 rank holders in university entrance exams.
+- Merit-Cum-Means Scholarship: 50% tuition fee waiver for students with SGPA > 8.0 and annual family income below Rs. 2.5 Lakhs.
+- Sports Excellence Scholarship: Rs. 15,000 per year for state/national players."""
             }
         ]
     },
     {
         "id": str(uuid.uuid4()),
         "title": "Training & Placement Cell (TPC) Guidelines and Code of Conduct",
-        "description": "Campus recruitment policy, eligibility criteria, One Student One Job rule, dream offer options, interview etiquette, and pre-placement training rules.",
+        "description": "Eligibility criteria for campus recruitment, dream company policy, code of conduct during placement drives, resume verification, and internship guidelines.",
         "category": "Placements",
-        "file_name": "placement_policy_handbook.pdf",
+        "file_name": "placement_cell_guidelines.pdf",
         "chunks": [
             {
                 "page": 1,
-                "content": """Placement Eligibility Criteria:
-1. Minimum CGPA Requirement: Students must maintain a minimum CGPA of 6.0 (or 60% aggregate) with no active backlogs to be eligible for Tier-1 campus placement drives (IT & Core engineering companies).
-2. Training Attendance: 100% attendance in pre-placement soft skills, aptitude training, and mock technical interviews organized by the TPC is mandatory to participate in campus recruitment.
-3. Registration: Eligible students must register with the TPC portal in the 6th semester by submitting verified marksheets and resumes."""
+                "content": """Campus Placement Eligibility and Registration:
+1. Eligibility Criteria: Students must have a minimum cumulative CGPA of 6.0 (60%) with no active standing backlogs at the time of recruitment registration.
+2. TPC Registration: Final year students must register with the Placement Cell during 6th semester by paying a one-time registration fee of Rs. 1,000.
+3. Placement Rule - One Student One Job Policy: Once a student receives a job offer (Offer Letter / Email Intent), they are considered 'PLACED' and are de-registered from subsequent campus placement drives, with the exception of the 'Dream Company Option'."""
             },
             {
                 "page": 2,
-                "content": """Placement Rules - One Student One Job Policy:
-1. One Job Rule: Once a student receives an official job offer from any campus recruiting company, they are considered 'Placed' and will be de-registered from attending further recruitment drives.
-2. Exception - Dream Company Option: A placed student is allowed ONE additional opportunity to apply for a 'Dream Company' if the offered CTC is at least 1.5 times higher than their current offer (e.g. initial offer Rs. 4 LPA -> eligible for Dream drives offering >= Rs. 6 LPA).
-3. Non-Attendance Penalty: Absenteeism from an interview after registering without valid medical emergency results in immediate debarment from the next 3 campus recruitment drives."""
+                "content": """Dream Company Policy and Placement Conduct:
+1. Dream Company Option: A placed student holding a job offer with Package X is permitted to participate in a 'Dream Company' drive ONLY if the offered package is at least 1.5 times higher (150%+) than their current offer.
+2. Absenteeism Fine: Registering for a campus placement drive and failing to appear for the test/interview without 24-hour prior written medical excuse results in automatic suspension from the next 3 placement drives.
+3. Dress Code & Discipline: Candidates must be dressed strictly in formal business attire (dark blazer, tie, formal trousers, polished shoes). Professional decorum must be maintained during pre-placement talks (PPT)."""
             }
         ]
     },
     {
         "id": str(uuid.uuid4()),
         "title": "Central Library Rules, Book Circulation and Digital Resources",
-        "description": "Library working hours, borrowing limits for UG/PG/Faculty, late fine fees, book renewal rules, digital library access, and quiet environment rules.",
+        "description": "Library working hours, borrowing limits, late return fine, digital library access (IEEE, Springer), quiet study rules, and lost book replacement policy.",
         "category": "Library Services",
-        "file_name": "library_rules_handbook.pdf",
+        "file_name": "library_rules_services.pdf",
         "chunks": [
             {
                 "page": 1,
-                "content": """Library Timings and Book Circulation Limits:
+                "content": """Library Timings and Book Circulation Rules:
 1. Working Hours:
-- Monday to Friday: 8:00 AM to 8:00 PM
-- Saturday: 9:00 AM to 4:00 PM (Closed on Sundays and Public Holidays)
-2. Borrowing Entitlement:
-- Undergraduate Students (B.Tech / B.Sc / BCA / B.Com): 4 books for 14 days.
-- Postgraduate Students (M.Tech / MCA / MBA): 6 books for 21 days.
-- Faculty Members: 10 books for 30 days.
-3. Overdue Fine: Late return of books attracts a fine of Rs. 2.00 per book per day. Loss of library book requires replacement with latest edition or payment of 2x original book cost."""
+- General Library: 8:00 AM to 8:00 PM on all working days.
+- Central Reading Hall: Open 24/7 during end-semester examination months.
+- Sunday & Public Holidays: 9:00 AM to 4:00 PM.
+2. Book Borrowing Limits & Duration:
+- Undergraduate (UG) Students: 4 books for 14 days.
+- Postgraduate (PG) Students: 6 books for 21 days.
+- Faculty Members: 10 books for 90 days.
+3. Book Renewal: Books can be renewed once for an additional 14 days provided there are no pending reservations by other users."""
             },
             {
                 "page": 2,
-                "content": """Digital Library, E-Journals and Reference Section:
-1. Digital Library Section: Equipped with 40 high-speed multimedia terminals. Students can access e-journals (IEEE Xplore, ScienceDirect, SpringerLink, Elsevier) and NPTEL video lectures free of cost on campus.
-2. Reference Section: Rare encyclopedias, handbooks, project reports, and bound volumes of journals are strictly for reference within the library reading hall and cannot be checked out.
-3. Code of Conduct: Absolute silence must be maintained. Group discussions, eating, drinking, and mobile phone calls are strictly prohibited inside the library."""
+                "content": """Overdue Fines, Lost Books and Digital Library:
+1. Overdue Fine: Rs. 2 per day per book for the first 7 overdue days; Rs. 5 per day per book thereafter.
+2. Lost Book Policy: If a borrowed book is lost, the borrower must replace the book with the latest edition OR pay double the current market price of the book plus 15% handling charges.
+3. Digital Resources & E-Journals: Central Library subscribes to IEEE Xplore Digital Library, SpringerLink, ScienceDirect, Elsevier, and NPTEL video lectures. Off-campus remote access is provided via Knimbus portal using student institutional email ID."""
             }
         ]
     },
     {
         "id": str(uuid.uuid4()),
         "title": "Campus IT Facilities, WiFi Usage and Cyber Security Policy",
-        "description": "Student WiFi credentials, data quota limits, network security regulations, forbidden websites, lab equipment usage, and software copyright policies.",
+        "description": "Student WiFi login setup, MAC address binding, bandwidth quota, lab security policy, software licensing, and acceptable IT usage policy.",
         "category": "IT & Campus Facilities",
-        "file_name": "campus_it_wifi_policy.pdf",
+        "file_name": "it_wifi_policy.pdf",
         "chunks": [
             {
                 "page": 1,
-                "content": """Campus High-Speed WiFi and Data Quota Rules:
-1. WiFi Credentials: Every student is provided with unique LDAP credentials (username and password) for connecting to the campus-wide secure WiFi network.
-2. Monthly Data Quota: 15 GB high-speed data per student per month. Bandwidth speed is throttled to 2 Mbps after quota exhaustion.
-3. Class Hours Restrictions: Entertainment streaming platforms (Netflix, YouTube 4K, Gaming servers) are restricted on campus WiFi during lecture hours (9:00 AM to 4:00 PM).
-4. Cyber Security Violations: Using VPN bypasses, torrent downloads, unauthorized network scanning, or accessing illegal websites will lead to immediate MAC address blocking and disciplinary action by the IT Security Cell."""
+                "content": """Campus WiFi Registration and Internet Usage:
+1. WiFi Access: High-speed campus-wide 1 Gbps fiber internet connection is available for all registered students across academic blocks, labs, and hostels.
+2. Device Registration & MAC Binding: Students must register their laptop/mobile MAC address on the Campus IT Portal (http://wifi.campus.internal) using institutional credentials (@college.edu). Maximum 2 devices allowed per student.
+3. Bandwidth Limit: 20 GB high-speed quota per student per month. Speeds throttled to 2 Mbps after exhaustion of monthly quota.
+4. Banned Activities: BitTorrent / P2P file sharing, accessing copyrighted pirated material, pornographic content, darknet, or executing network scanning tools is strictly prohibited. Campus firewall logs all active traffic with user IP mapping."""
             }
         ]
     },
     {
         "id": str(uuid.uuid4()),
         "title": "Anti-Ragging Regulations, Discipline and Redressal Cell",
-        "description": "Zero tolerance anti-ragging policy, UGC mandates, Anti-Ragging Committee contacts, Student Grievance Cell, and disciplinary penalties for misconduct.",
+        "description": "UGC mandated anti-ragging policies, anti-ragging squad contacts, disciplinary committee procedures, penalties, and helpline numbers.",
         "category": "Discipline & Anti-Ragging",
-        "file_name": "anti_ragging_discipline_handbook.pdf",
+        "file_name": "anti_ragging_policy.pdf",
         "chunks": [
             {
                 "page": 1,
-                "content": """UGC Anti-Ragging Mandate and Zero Tolerance Policy:
-1. Zero Tolerance: Ragging in any form (physical, verbal, psychological, electronic) inside or outside the campus is strictly prohibited by law (Kerala Prohibition of Ragging Act, 1998 & UGC Regulations).
-2. Mandatory Affidavit: Every student and parent must submit an online anti-ragging undertaking at www.antiragging.in during annual registration.
-3. Penalties for Ragging: Suspension from classes, expulsion from hostel, cancellation of admission, and lodging of FIR with police. National Anti-Ragging Toll-Free Helpline: 1800-180-5522. Campus Anti-Ragging Squad Officer Contact: 9447012345."""
+                "content": """Anti-Ragging Policy and Zero Tolerance Framework:
+1. Zero Tolerance Policy: Ragging in any form (physical, verbal, mental harassment, teasing, or demanding unnatural tasks) inside or outside the campus is a cognizable criminal offense under UGC Regulations 2009.
+2. Mandatory Affidavit: Every student and parent must submit an online Anti-Ragging Undertaking at www.antiragging.in during annual registration.
+3. Anti-Ragging Helpline & Contacts:
+- National Toll-Free Anti-Ragging Helpline: 1800-180-5522 (24x7)
+- Campus Anti-Ragging Squad Hotline: +91 94470 12345 / anti-ragging@college.edu
+- Nodal Officer Contact: Prof. K. R. Nair (Mob: +91 98460 98765)."""
             },
             {
                 "page": 2,
-                "content": """Student Grievance Redressal and Disciplinary Action:
-1. Disciplinary Committee: Misconduct such as destruction of college property, physical brawls, forgery, or examination malpractice is referred to the Staff Disciplinary Committee.
-2. Examination Malpractice: Copying or carrying mobile phones/chits during exams results in cancellation of all papers in the semester and 1-year suspension.
-3. Grievance Redressal Cell: Students can submit academic or administrative complaints online via the campus portal or drop written letters in the Grievance Box near the Administrative Block."""
+                "content": """Penalties for Ragging and Disciplinary Actions:
+Any student found guilty of ragging by the Anti-Ragging Committee will face one or more of the following punishments:
+1. Immediate suspension from attending classes and academic privileges.
+2. Expulsion from the hostel and forfeiture of hostel security deposit.
+3. Debarring from appearing in mid-term or end-semester examinations.
+4. Cancellation of admission and rustication from the institution for periods ranging from 1 to 4 semesters.
+5. Filing of First Information Report (FIR) with the local police station leading to legal prosecution."""
             }
         ]
     },
     {
         "id": str(uuid.uuid4()),
         "title": "Clubs, Sports, NSS, NCC and Extracurricular Activity Credits",
-        "description": "Student clubs (IEEE, GDSC, Robotics, Literary, Arts), Sports facilities, Gymnasium timings, NSS/NCC units, and 100 Activity Points requirement.",
+        "description": "Overview of student clubs, IEEE/ACM chapters, NSS, NCC units, annual tech fest, cultural fest, and activity credits required for graduation.",
         "category": "Clubs & Extracurriculars",
-        "file_name": "extracurricular_clubs_sports.pdf",
+        "file_name": "clubs_extracurricular_policy.pdf",
         "chunks": [
             {
                 "page": 1,
-                "content": """100 Activity Points Requirement for Degree:
-1. Activity Points Mandate: To qualify for B.Tech degree, every student must earn a minimum of 100 Activity Points during their 4-year program through non-academic activities.
-2. Activity Point Distribution:
-- NSS / NCC Cadet (2 years active service): 60 Points
-- Sports Tournament (University Winner / Runner-up): 40 Points
-- Office Bearer of Student Clubs (IEEE / GDSC / Robotics / Arts): 15-25 Points
-- Organizing Tech Fests / Cultural Events: 10-20 Points
-- Social Service / Community Service (minimum 40 hours): 20 Points."""
+                "content": """Student Activity Points and Extracurricular Credits:
+1. Mandatory Activity Points: As per university regulations, every B.Tech student must earn a minimum of 100 Activity Points during their 4-year program to be eligible for degree award.
+2. Activity Point Allocation Examples:
+- NSS / NCC participation (2 years completed): 60 Activity Points
+- Executive Committee Member of Student Club / Society: 15 Points per year
+- Winner in National Level Tech Fest / Hackathon: 30 Points
+- Organizer of College Tech Fest / Cultural Fest: 20 Points
+- Paper publication in Scopus indexed journal: 40 Points
+- Sports Representation (University Level): 30 Points."""
             },
             {
                 "page": 2,
-                "content": """Sports Facilities and Gymnasium Timings:
-1. Facilities Available: Synthetic Basketball Court, Football Ground, Cricket Nets, Volleyball Court, Indoor Badminton Courts, and Table Tennis Tables.
-2. Campus Gymnasium Timings:
-- Morning Session: 6:00 AM to 8:00 AM
-- Evening Session: 4:30 PM to 7:30 PM
-3. Equipment Issue: Sports equipment can be issued from the Physical Education Department against college ID card for up to 2 hours per day."""
+                "content": """Campus Student Organizations and Major Events:
+1. Technical Chapters: IEEE Student Branch, ACM Chapter, SAE India Club, Robotics & AI Club, Coding Club.
+2. Cultural & Creative Clubs: Music Club (Acoustics), Dance Club, Drama & Literary Society, Photography Club.
+3. Major Annual Events:
+- 'INNOVISION' — Annual National Level Inter-College Technical Symposium & Hackathon (conducted in October).
+- 'SANGAM' — Annual Cultural Festival & Music Night (conducted in February).
+- 'OLYMPIA' — Annual Inter-Departmental Sports Tournament (conducted in January)."""
             }
         ]
     },
     {
         "id": str(uuid.uuid4()),
         "title": "Campus Infirmary, Medical Center and Health Emergency Services",
-        "description": "24/7 campus medical center, resident nurse, visiting doctor hours, emergency ambulance service, medical certificate validation, and student health insurance.",
+        "description": "24/7 medical center facilities, resident doctor availability, ambulance services, medical insurance coverage, and emergency contacts.",
         "category": "Health & Medical",
-        "file_name": "medical_health_services.pdf",
+        "file_name": "medical_infirmary_policy.pdf",
         "chunks": [
             {
                 "page": 1,
-                "content": """Campus Health Center and Emergency Medical Support:
-1. Infirmary Services: 24/7 campus medical room equipped with first-aid, emergency beds, oxygen cylinders, and basic diagnostics located adjacent to the Main Hostel Block.
-2. Doctor Consultation Hours: Visiting Medical Officer available Monday to Saturday from 4:00 PM to 6:00 PM. First-aid and basic medicines provided free of charge to all students.
-3. Emergency Ambulance Service: Dedicated 24/7 campus ambulance available for immediate transfer to City Multispecialty Hospital. Emergency Contact Number: 0471-2555999 / 9447111222.
-4. Student Health Insurance: Every registered student is covered under Group Medical Insurance up to Rs. 1,00,000 for accidental hospitalization."""
+                "content": """Campus Health Center and Emergency Medical Services:
+1. Medical Center Location & Hours: Located next to Boys Hostel Block 2. Operates 24x7 with resident medical officer and trained nursing staff.
+2. Doctor Consultation Timings: Out-Patient (OP) consultations: 9:00 AM to 1:00 PM and 4:00 PM to 7:00 PM on working days. Emergency services available round-the-clock.
+3. Emergency Contacts:
+- Medical Center Reception: Ext. 4444 / Mobile: +91 94460 11111
+- 24/7 Campus Ambulance Service: +91 94460 22222
+4. Student Health Insurance: All enrolled students are automatically covered under the Group Mediclaim Insurance Policy up to Rs. 1,00,000 for emergency hospitalization due to accident or sudden illness."""
             }
         ]
     },
     {
         "id": str(uuid.uuid4()),
         "title": "Canteen, Dining Hall and Transportation Services",
-        "description": "Campus cafeteria timings, food safety guidelines, subsidized pricing, college bus routes, vehicle parking permits, and traffic rules on campus.",
+        "description": "Food court timings, hygiene standards, daily bus routes, bus pass fee structure, and campus vehicle rules.",
         "category": "Campus Services",
-        "file_name": "canteen_transport_guidelines.pdf",
+        "file_name": "canteen_transport_services.pdf",
         "chunks": [
             {
                 "page": 1,
-                "content": """Campus Canteen Timings and Food Hygiene:
-1. Canteen Working Hours: 7:30 AM to 6:00 PM on all working days. Serves hygienic vegetarian and non-vegetarian meals, snacks, fresh juices, and beverages at subsidized student rates.
-2. Food Safety: Monitored monthly by Food Safety Inspection Cell. Single-use plastic is strictly banned across all food stalls on campus.
-3. College Bus Routes & Passes: Fleet of 15 college buses operates across major city routes. Semester bus pass must be renewed within 5 days of semester re-opening.
-4. Vehicle Parking Rules: Student two-wheelers and cars must have valid campus parking sticker. Speed limit inside campus is 20 km/h. Helmets are mandatory for riders and pillion riders."""
+                "content": """Campus Canteen and Transport Facilities:
+1. Central Food Court: Functions from 7:30 AM to 8:30 PM. Serves South Indian, North Indian, snacks, fresh juice counter, and bakery items. Food hygiene is regularly audited by the FSSAI-certified Food Quality Committee.
+2. Campus Bus Transport: Fleet of 18 college buses operate across major city routes picking up day-scholar students and staff.
+3. Transport Fee & Bus Pass: Annual transport fee ranges from Rs. 12,000 to Rs. 18,000 depending on distance zone. Bus passes are issued per semester upon payment receipt. RFID bus pass scanning is mandatory while boarding."""
+            }
+        ]
+    },
+    {
+        "id": str(uuid.uuid4()),
+        "title": "Admission Process, Eligibility Criteria and Application Procedures",
+        "description": "Detailed guidelines for admission into UG & PG courses, eligibility criteria, entrance exams (JEE, KEAM, GATE, CAT, CUET), seat allocation, required documents, and admission calendar 2024-2026.",
+        "category": "Admissions",
+        "file_name": "admission_guidelines_2026.pdf",
+        "chunks": [
+            {
+                "page": 1,
+                "content": """Comprehensive Admission Guidelines and Eligibility Criteria:
+1. B.Tech Admissions:
+- Entrance Exams: Admission is offered through JEE Main / State Level Engineering Entrance (KEAM / CET) centralized counselling.
+- Eligibility: Passed 10+2 (Higher Secondary) with Minimum 50% aggregate marks in Physics, Chemistry, and Mathematics (PCM) combined (45% for SC/ST/OBC).
+- Direct / Management Quota: 30% of total seats are reserved for Management Quota based on 10+2 PCM merit and rank in entrance test.
+2. B.Sc / BCA / B.Com Admissions: Passed 10+2 with minimum 45% aggregate marks from a recognized board. Selection based on Merit in qualifying 12th board exam.
+3. Lateral Entry to 2nd Year B.Tech: Passed 3-year Diploma in Engineering with minimum 60% marks or B.Sc (Mathematics) with minimum 60% marks."""
+            },
+            {
+                "page": 2,
+                "content": """Postgraduate (PG) Admission Criteria:
+1. M.Tech Program:
+- Eligibility: Bachelor's Degree in Engineering/Technology (B.E./B.Tech) with CGPA >= 6.0 or 60% aggregate marks.
+- Selection: Valid GATE score candidates get preference and monthly AICTE stipend (Rs. 12,400/month). Non-GATE candidates are selected based on Institutional Entrance Test & Interview.
+2. MBA Program:
+- Eligibility: Bachelor's degree in any discipline with minimum 50% aggregate marks.
+- Entrance Exams: Valid score in CAT / MAT / CMAT / KMAT followed by Group Discussion (GD) and Personal Interview (PI).
+3. MCA Program: Passed BCA / B.Sc (Computer Science / IT) or Graduation with Mathematics at 10+2 level with minimum 50% marks. Admission via MCA Entrance Test."""
+            },
+            {
+                "page": 3,
+                "content": """Required Admission Documents & Admission Calendar 2026:
+1. Required Documents Checklist during Physical Reporting:
+- Allotment Memo & Fee Receipt
+- 10th / SSLC Marksheet & Passing Certificate (Original + 3 copies)
+- 12th / Higher Secondary Marksheet & Pass Certificate (Original + 3 copies)
+- Graduation Degree Certificate & Consolidated Marksheets (for PG applicants)
+- Entrance Exam Score Card & Admit Card (JEE / KEAM / GATE / CAT)
+- Transfer Certificate (TC) & Conduct Certificate from last attended institution
+- Migration Certificate (for boards other than State Board)
+- Category / Caste / EWS Certificate (if seeking reservation benefit)
+- Passport-sized Photographs (6 copies)
+2. Tentative Admission Calendar 2026:
+- Online Application Opens: June 1st week
+- Last Date for Online Application: July 15th
+- Merit List & First Seat Allotment: July 25th
+- Document Verification & Fee Payment: August 1st to August 10th
+- Commencement of Classes: August 16th."""
+            }
+        ]
+    },
+    {
+        "id": str(uuid.uuid4()),
+        "title": "International Students, NRI Quota & Foreign Student Admissions",
+        "description": "Guidelines for foreign nationals, Persons of Indian Origin (PIO), Overseas Citizens of India (OCI), and Non-Resident Indian (NRI) quota admissions.",
+        "category": "Admissions",
+        "file_name": "nri_international_admissions.pdf",
+        "chunks": [
+            {
+                "page": 1,
+                "content": """NRI and Foreign National Admission Guidelines:
+1. NRI Quota Seats: 15% of total approved seat intake in each B.Tech branch is allocated for NRI sponsorship candidates as per AICTE guidelines.
+2. Eligibility for NRI Seats:
+- Passed 10+2 or equivalent examination abroad / India with Physics, Chemistry, and Mathematics. Minimum 50% aggregate in PCM.
+- Candidate must be a child / dependent of a Non-Resident Indian (NRI) with valid NRI status certificate from Embassy / Indian Consulate.
+3. Required Documents for NRI Admission:
+- NRI Sponsor Declaration Affidavit (Notarized)
+- Copy of Sponsor's valid Passport and Visa / Work Permit
+- Embassy Certificate proving NRI status of sponsor
+- Relationship Certificate issued by Revenue Authority
+4. Fee Structure for NRI Students: Tuition fee is $2,500 USD per year (or equivalent in INR) plus one-time registration fee of $500 USD."""
+            }
+        ]
+    },
+    {
+        "id": str(uuid.uuid4()),
+        "title": "Scholarship Portal, Government Grants & Financial Assistance",
+        "description": "Comprehensive info on National Scholarship Portal (NSP), State Post-Matric Scholarships, Central Sector Schemes, Pragati & Saksham AICTE scholarships.",
+        "category": "Fees & Scholarships",
+        "file_name": "government_scholarships_guide.pdf",
+        "chunks": [
+            {
+                "page": 1,
+                "content": """Government & Central Scholarship Schemes:
+1. National Scholarship Portal (NSP): Students can apply for Central Sector Scheme of Top Class Education, Post-Matric Scholarship for SC/ST/OBC, and Minority Scholarships at www.scholarships.gov.in.
+2. AICTE Pragati Scholarship for Girl Students: Rs. 50,000 per annum for eligible female students admitted into 1st year B.Tech/Diploma (family income < Rs. 8 Lakhs).
+3. AICTE Saksham Scholarship for Specially-Abled Students: Rs. 50,000 per annum for differently-abled students with disability >= 40%.
+4. College Nodal Officer Assistance: The Scholarship Helpdesk located at Administrative Block Room 104 assists with online verification, document uploading, and income certificate renewal."""
+            }
+        ]
+    },
+    {
+        "id": str(uuid.uuid4()),
+        "title": "Student Rights, Grievance Redressal and Equal Opportunity Cell",
+        "description": "Structure of Student Grievance Redressal Committee (SGRC), Internal Complaints Committee (ICC), SC/ST Cell, and equal opportunity guidelines.",
+        "category": "Discipline & Grievance",
+        "file_name": "grievance_redressal_cell.pdf",
+        "chunks": [
+            {
+                "page": 1,
+                "content": """Student Grievance Redressal Mechanism:
+1. Student Grievance Redressal Committee (SGRC): Provides a fair, transparent platform for resolving academic, fee, evaluation, or harassment complaints.
+2. Online Grievance Portal: Complaints can be lodged anonymously or directly at http://grievance.college.edu.
+3. Internal Complaints Committee (ICC): Banned harassment of women at workplace/campus as per PoSH Act 2013. Convener Contact: Dr. S. Lakshmi (+91 94470 33333).
+4. Equal Opportunity Cell (EOC): Ensures non-discrimination and special guidance for SC/ST/OBC, PwD, and economically weaker section students."""
+            }
+        ]
+    },
+    {
+        "id": str(uuid.uuid4()),
+        "title": "Campus Security, Parking Regulations and Visitor Guidelines",
+        "description": "Campus entry gate security rules, vehicle parking passes, helmet rules, visitor entry logging, and CCTV monitoring.",
+        "category": "Campus Security",
+        "file_name": "security_parking_rules.pdf",
+        "chunks": [
+            {
+                "page": 1,
+                "content": """Campus Security & Vehicle Regulations:
+1. Vehicle Registration & Parking Pass: Two-wheelers and four-wheelers owned by students must be registered at the Security Office (Main Gate) to obtain a vehicle pass sticker.
+2. Mandatory Helmet Rule: Riding two-wheelers inside campus without a helmet is strictly banned. Triple riding is punishable with an instant Rs. 500 fine and parking sticker cancellation.
+3. Speed Limit: Maximum speed limit inside campus roads is 20 km/h. Honking near academic blocks and central library is prohibited.
+4. CCTV Surveillance: Campus is under 24/7 CCTV camera coverage with centralized recording at the Security Control Room."""
+            }
+        ]
+    },
+    {
+        "id": str(uuid.uuid4()),
+        "title": "Research & Innovation Cell, Patent Support and Incubation Center",
+        "description": "Funding for student innovative projects, startup incubation center, patent filing support, and undergraduate research fellowships.",
+        "category": "Research & Innovation",
+        "file_name": "research_incubation_policy.pdf",
+        "chunks": [
+            {
+                "page": 1,
+                "content": """Campus Innovation & Startup Incubation Center:
+1. Student Project Innovation Fund: Financial grant up to Rs. 50,000 awarded per semester to promising final-year B.Tech / M.Tech prototype projects selected by the Research Board.
+2. Technology Business Incubator (TBI): Offers free co-working office space, high-speed internet, mentorship, and seed funding up to Rs. 5 Lakhs for student startups registered under the Incubation Cell.
+3. Intellectual Property (IPR) & Patent Cell: Provides 100% financial reimbursement for patent application filing fees for inventions created by students and faculty."""
             }
         ]
     }
@@ -350,17 +501,17 @@ Minimum Internal Requirement: A student must secure a minimum of 45% (18 out of 
 
 def seed_database():
     print("=" * 65)
-    print("  CAMPUSAI — SEEDING COMPREHENSIVE COLLEGE KNOWLEDGE BASE")
+    print("  CAMPUSAI — SEEDING UNIVERSAL COMPREHENSIVE COLLEGE DATA")
     print("=" * 65)
 
+    # 1. Seed Local SQLite Database
     conn = sqlite3.connect(LOCAL_DB_PATH)
     cursor = conn.cursor()
 
-    # Clear existing documents and chunks to ensure clean state
     cursor.execute("DELETE FROM document_chunks")
     cursor.execute("DELETE FROM documents")
     conn.commit()
-    print("Cleaned existing documents & chunks from database.")
+    print("Cleaned existing documents & chunks from local SQLite database.")
 
     total_chunks = 0
     for doc_idx, doc in enumerate(DOCUMENTS, 1):
@@ -375,7 +526,7 @@ def seed_database():
             content = chunk_data["content"].strip()
             page_num = chunk_data.get("page", 1)
 
-            print(f"   -> Generating embedding for chunk {chunk_idx + 1}/{len(doc['chunks'])} (Page {page_num})...")
+            print(f"   -> Generating embedding for chunk {chunk_idx + 1}/{len(doc['chunks'])} (Page {page_num})...", flush=True)
             embedding = generate_embedding(content)
 
             chunk_id = str(uuid.uuid4())
@@ -395,12 +546,10 @@ def seed_database():
     conn.commit()
     conn.close()
 
-    # Invalidate in-RAM vector cache so new embeddings are reloaded immediately
     invalidate_vector_cache()
 
     print("\n" + "=" * 65)
-    print(f" SUCCESS: Ingested {len(DOCUMENTS)} Documents & {total_chunks} Chunks into CampusAI DB!")
-    print(" RAM Vector Cache invalidated and ready for immediate instant lookup.")
+    print(f" SUCCESS: Ingested {len(DOCUMENTS)} Documents & {total_chunks} Chunks into Local SQLite DB!")
     print("=" * 65)
 
 if __name__ == "__main__":

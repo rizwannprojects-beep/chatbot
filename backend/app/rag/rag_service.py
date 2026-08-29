@@ -20,25 +20,29 @@ logger = logging.getLogger("campusai.rag_service")
 #  CONSTANTS
 # ══════════════════════════════════════════════════════════════
 
+# ══════════════════════════════════════════════════════════════
+#  CONSTANTS
+# ══════════════════════════════════════════════════════════════
+
 FALLBACK_RESPONSE = (
-    "Hello! 😊 I searched the official campus knowledge base, but I couldn't find the exact details for your specific query right now.\n\n"
-    "I can gladly help you with any of the following campus topics:\n"
-    "• **Admissions & Eligibility**: B.Tech, UG/PG courses, required documents, and 2026 deadlines.\n"
-    "• **Hostel Rules & Curfew**: Curfew times (8:30 PM girls / 9:30 PM boys), gate passes, and mess fees.\n"
-    "• **Fees & Scholarships**: Semester tuition fees, installment dates, and government scholarship portals.\n"
-    "• **Exams & Grading**: Internal assessments, 10-point CGPA grading scale, and revaluation procedures.\n"
-    "• **Placements & Internships**: TPC registration, dream company rules, and campus drive eligibility.\n\n"
-    "Feel free to ask your question in another way, or visit the Campus Student Support Desk for personalized assistance!"
+    "I searched the official campus documents, but I couldn't find specific details for your query right now.\n\n"
+    "You can ask me about:\n"
+    "• **Admissions & Eligibility**: B.Tech, PG courses, required documents\n"
+    "• **Hostel Rules & Curfew**: Gate times (8:30 PM girls / 9:30 PM boys), gate passes\n"
+    "• **Fees & Scholarships**: Tuition fees, government scholarship portals\n"
+    "• **Exams & Grading**: Internal marks, 10-point CGPA scale, revaluation\n"
+    "• **Placements**: TPC rules, company eligibility, campus drives"
 )
 
-SYSTEM_PROMPT = """You are CampusAI, the official college assistant. You are a warm, calm, polite, and highly knowledgeable AI.
+SYSTEM_PROMPT = """You are CampusAI, the official college assistant.
 
-YOUR ROLE:
-- Answer the student's question directly, clearly, and comprehensively.
-- When official document context is provided, use exact facts, fees, dates, rules, and credit values.
-- When answering general queries or single keywords (e.g., "examination", "library", "admission", "fees", "hostel"), provide a complete, well-organized summary covering all key aspects (timings, rules, procedures, guidelines).
-- Structure responses cleanly using bold section headers (**...**) and bullet points.
-- NEVER ask the student to provide documents or context. Always answer immediately with helpful, polite information.
+CRITICAL ANSWERING RULES:
+1. Answer the student's EXACT question directly and specifically.
+2. Rely strictly on facts, percentages, fees, deadlines, and rules provided in the OFFICIAL DOCUMENT CONTEXT.
+3. Do NOT include unrelated topics (e.g., if asked about attendance, do NOT include scholarships, hostel rules, or Wi-Fi info).
+4. Do NOT use generic introductory filler or greetings like "Hello! 😊 Based on official campus documents...". Start directly with the answer.
+5. Keep your response clear, concise, professional, and well-structured.
+6. If the context does not contain the answer, state clearly that the document does not provide that information. Do not invent policies.
 """
 
 # ══════════════════════════════════════════════════════════════
@@ -65,16 +69,12 @@ _GREETINGS: Dict[str, str] = {
 
 # ══════════════════════════════════════════════════════════════
 #  MULTI-LEVEL RESPONSE CACHE
-#  Level 1: Exact normalised match (< 1ms)
-#  Level 2: Normalised with punctuation stripped (< 1ms)
-#  Both stored in a single dict — keys are normalized forms
 # ══════════════════════════════════════════════════════════════
 
 _RESPONSE_CACHE: Dict[str, Dict[str, Any]] = {}
 _CACHE_MAX_SIZE = 1000
 
 def _normalize(text: str) -> str:
-    """Normalise for cache lookup — lowercase, strip punctuation, collapse whitespace."""
     t = text.lower().strip()
     t = re.sub(r"[?!.,;:'\"\-]+", " ", t)
     t = re.sub(r"\s+", " ", t).strip()
@@ -85,22 +85,12 @@ def _cache_get(key: str) -> Optional[Dict[str, Any]]:
 
 def _cache_set(key: str, value: Dict[str, Any]) -> None:
     if len(_RESPONSE_CACHE) >= _CACHE_MAX_SIZE:
-        # Evict oldest 20%
         evict_keys = list(_RESPONSE_CACHE.keys())[:_CACHE_MAX_SIZE // 5]
         for k in evict_keys:
             del _RESPONSE_CACHE[k]
     _RESPONSE_CACHE[key] = value
 
-# ══════════════════════════════════════════════════════════════
-#  PRE-WARMING — called at startup so first query is instant
-# ══════════════════════════════════════════════════════════════
-
 def prewarm_rag_system() -> None:
-    """
-    Call once at startup (from main.py lifespan) to:
-    1. Load all embeddings into RAM (vector cache)
-    2. Pre-populate greeting cache
-    """
     logger.info("Pre-warming RAG system...")
     try:
         _warm_vector_cache()
@@ -117,13 +107,6 @@ def execute_rag_pipeline(
     question: str,
     conversation_id: Optional[str] = None
 ) -> Dict[str, Any]:
-    """
-    Executes the multi-level optimised RAG pipeline:
-    1. Greeting fast-path (< 1ms)
-    2. Exact response cache hit (< 1ms)
-    3. Vector search on RAM cache (< 50ms)
-    4. LLM grounded generation (1-4s)
-    """
     t0 = time.perf_counter()
 
     cleaned = question.strip()
@@ -133,7 +116,6 @@ def execute_rag_pipeline(
     norm_q  = _normalize(cleaned)
     short_q = cleaned[:40] + ("..." if len(cleaned) > 40 else "")
 
-    # ── Conversation setup (Auto-heal invalid or deleted conversation_id) ──
     conv = None
     if conversation_id:
         conv = get_conversation_by_id(conversation_id)
@@ -144,36 +126,33 @@ def execute_rag_pipeline(
         conv = create_conversation(user_id=user_id, title=short_q)
         conversation_id = conv["id"]
 
-    # Save user message
     add_message(conversation_id=conversation_id, sender="user", content=cleaned, sources=None)
 
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # FAST-PATH 1: Conversational greetings
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # 1. Greetings
     if norm_q in _GREETINGS:
         answer = _GREETINGS[norm_q]
         return _save_and_return(conversation_id, answer, [], t0)
 
-    # Also match if stripped of common words
     for greeting_key, greeting_val in _GREETINGS.items():
         if norm_q.startswith(greeting_key) and len(norm_q) < len(greeting_key) + 8:
             return _save_and_return(conversation_id, greeting_val, [], t0)
 
-    # (Bypassing static response cache to ensure fresh dynamic LLM generation on every query)
+    # 2. Intent & Ambiguity Check
+    from app.rag.intent_service import analyze_query_intent
+    intent = analyze_query_intent(cleaned)
+    if intent["is_ambiguous"]:
+        answer = intent["clarification_message"]
+        return _save_and_return(conversation_id, answer, [], t0)
 
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # STEP 3: Vector search (RAM-cached chunks)
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    top_k     = int(os.getenv("RAG_TOP_K", "6"))
-    threshold = float(os.getenv("RAG_SIMILARITY_THRESHOLD", "0.05"))
+    # 3. Vector search
+    top_k     = int(os.getenv("RAG_TOP_K", "4"))
+    threshold = float(os.getenv("RAG_SIMILARITY_THRESHOLD", "0.20"))
 
     t_vec = time.perf_counter()
     retrieved = search_similar_chunks(query=cleaned, top_k=top_k, similarity_threshold=threshold)
     logger.info(f"Vector search: {len(retrieved)} chunks in {(time.perf_counter()-t_vec)*1000:.1f}ms")
 
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # STEP 4: LLM generation (Always Dynamic)
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # 4. Prompt & Answer Generation
     context_blocks = []
     context_snippets = []
     sources = []
@@ -202,21 +181,19 @@ def execute_rag_pipeline(
             f"{SYSTEM_PROMPT}\n\n"
             f"=== OFFICIAL DOCUMENT CONTEXT ===\n{context_text}\n\n"
             f"=== STUDENT QUESTION ===\n{cleaned}\n\n"
-            f"Answer:"
+            f"Question-Specific Answer:"
         )
+        t_llm = time.perf_counter()
+        answer = generate_grounded_answer(prompt, context_snippets, question=cleaned)
+        logger.info(f"LLM generation: {(time.perf_counter()-t_llm)*1000:.1f}ms")
     else:
-        # Dynamic fallback: Use LLM to generate a helpful, polite, intelligent response
-        prompt = (
-            f"{SYSTEM_PROMPT}\n\n"
-            f"=== STUDENT QUESTION ===\n{cleaned}\n\n"
-            f"Provide a helpful, polite, calm, and well-structured answer explaining the information clearly."
+        # Fallback when official documents do not contain relevant details
+        answer = (
+            f"I searched the official campus knowledge base, but I couldn't find specific details regarding **\"{cleaned}\"**.\n\n"
+            "Please check with the Campus Support Desk or try rephrasing your question."
         )
+        sources = []
 
-    t_llm = time.perf_counter()
-    answer = generate_grounded_answer(prompt, context_snippets)
-    logger.info(f"LLM generation: {(time.perf_counter()-t_llm)*1000:.1f}ms")
-
-    # Return live generated response
     total_ms = (time.perf_counter() - t0) * 1000
     logger.info(f"Total RAG pipeline: {total_ms:.1f}ms for '{short_q}'")
 

@@ -51,10 +51,7 @@ def _reset_client() -> httpx.Client:
 
 # Ordered model fallback chain — valid active Google AI models
 _MODELS_TO_TRY = [
-    GEMINI_MODEL,
-    "gemini-1.5-flash",
-    "gemini-2.0-flash",
-    "gemini-1.5-pro",
+    "gemini-2.5-flash",
 ]
 
 # Connection-level errors that require client recreation
@@ -69,7 +66,7 @@ _CONNECTION_ERRORS = (
 )
 
 
-def generate_grounded_answer(prompt: str, context_snippets: List[str]) -> str:
+def generate_grounded_answer(prompt: str, context_snippets: List[str], question: Optional[str] = None) -> str:
     """
     Calls Google Gemini LLM with automatic retry and connection recovery.
     Handles stale TCP keepalive connections (Windows WSARECV error) gracefully.
@@ -79,7 +76,7 @@ def generate_grounded_answer(prompt: str, context_snippets: List[str]) -> str:
 
     if not GEMINI_API_KEY or "your-gemini-api-key" in GEMINI_API_KEY or "mock-gemini" in GEMINI_API_KEY:
         logger.warning("GEMINI_API_KEY unconfigured — using context synthesis.")
-        return _synthesize_from_context(context_snippets)
+        return _synthesize_from_context(context_snippets, question=question)
 
     payload = {
         "contents": [{"parts": [{"text": prompt}]}],
@@ -125,8 +122,11 @@ def generate_grounded_answer(prompt: str, context_snippets: List[str]) -> str:
                     break  # Don't retry same model if it worked but gave empty
 
                 elif response.status_code == 429:
-                    logger.warning(f"Gemini [{model_name}] rate limited (429). Moving to next model.")
-                    break  # Try next model immediately
+                    logger.warning(f"Gemini [{model_name}] rate limited (429). Attempt {attempt}/{max_retries}...")
+                    if attempt < max_retries:
+                        time.sleep(0.5)
+                        continue
+                    break
 
                 elif response.status_code in (500, 503, 502):
                     wait = attempt * 0.5
@@ -146,7 +146,6 @@ def generate_grounded_answer(prompt: str, context_snippets: List[str]) -> str:
                 break
 
             except _CONNECTION_ERRORS as e:
-                # Stale TCP connection (Windows WSARECV / connection aborted)
                 logger.warning(
                     f"Gemini [{model_name}] connection error on attempt {attempt}/{max_retries}: "
                     f"{type(e).__name__}: {str(e)[:80]}. Recreating HTTP client..."
@@ -163,22 +162,22 @@ def generate_grounded_answer(prompt: str, context_snippets: List[str]) -> str:
 
     # All models exhausted — synthesise from context
     logger.info("All Gemini models failed — falling back to context synthesis.")
-    return _synthesize_from_context(context_snippets)
+    return _synthesize_from_context(context_snippets, question=question)
 
 
-def _synthesize_from_context(context_snippets: List[str]) -> str:
+def _synthesize_from_context(context_snippets: List[str], question: Optional[str] = None) -> str:
     """
-    Produces a clean, deduplicated, well-formatted answer directly from retrieved context chunks
-    when the LLM API is unavailable. Bulletproof against exceptions.
+    Produces a clean, deduplicated, targeted answer directly from retrieved context chunks
+    when the LLM API is unavailable.
     """
     if not context_snippets:
+        topic_clause = f" for **\"{question}\"**" if question else ""
         return (
-            "Hello! 😊 I'm CampusAI, your official college assistant. I am here to help you with all campus queries including **admissions, eligibility, fee structures, hostel curfew rules, examination schedules, placements, and library policies**.\n\n"
-            "Please ask your specific question (for example: *'What is the admission process?'* or *'What are the hostel curfew rules?'*) and I will gladly provide full details!"
+            f"I searched the official campus knowledge base, but I couldn't find specific details{topic_clause}.\n\n"
+            "Please check with the Campus Support Desk or ask about admissions, hostel rules, fees, or examinations!"
         )
 
     try:
-        intro = "Hello! 😊 Based on official campus documents, here is the relevant information for you:\n\n"
         seen_lines = set()
         unique_bullets = []
 
@@ -198,15 +197,12 @@ def _synthesize_from_context(context_snippets: List[str]) -> str:
                         unique_bullets.append(f"• {formatted}")
 
         if unique_bullets:
-            return (
-                intro
-                + "\n".join(unique_bullets[:25])
-                + "\n\n*If you need further details or have additional questions, feel free to ask anytime!*"
-            )
+            return "\n".join(unique_bullets[:20])
+
     except Exception as e:
         logger.error(f"Error during context synthesis: {e}")
 
-    bullets = [f"• {s.strip()[:300]}" for s in context_snippets if s.strip()]
+    bullets = [f"• {s.strip()[:250]}" for s in context_snippets if s.strip()]
     if bullets:
-        return "Hello! 😊 Based on official campus documents:\n\n" + "\n\n".join(bullets)
-    return "Hello! 😊 I'm here to help! Please ask me about admissions, fees, hostel rules, or exams!"
+        return "\n\n".join(bullets[:10])
+    return "Please ask a specific question regarding admissions, fees, hostel rules, or examinations."

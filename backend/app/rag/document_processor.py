@@ -200,7 +200,10 @@ def process_document(document_id: str) -> Dict[str, Any]:
                 embedding=embedding_vector
             )
 
-        # 7. Update status to COMPLETED
+        # 7. Update status to COMPLETED & invalidate vector cache
+        from app.rag.vector_search import invalidate_vector_cache
+        invalidate_vector_cache()
+
         updated_doc = update_document_status(document_id, status="COMPLETED", error_message=None)
         logger.info(f"Document '{document_id}' successfully processed into {len(chunks)} chunks.")
         return updated_doc or doc

@@ -55,7 +55,7 @@ def generate_embedding(text: str) -> List[float]:
         return _generate_fallback_vector(cleaned_text, EMBEDDING_DIMENSION)
 
     try:
-        url = f"{GEMINI_EMBED_URL}?key={GEMINI_API_KEY}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_EMBEDDING_MODEL}:embedContent?key={GEMINI_API_KEY}"
         payload = {
             "model": f"models/{GEMINI_EMBEDDING_MODEL}",
             "content": {
@@ -75,8 +75,21 @@ def generate_embedding(text: str) -> List[float]:
                 return embedding_values + [0.0] * (EMBEDDING_DIMENSION - len(embedding_values))
             else:
                 return _generate_fallback_vector(cleaned_text, EMBEDDING_DIMENSION)
+        elif response.status_code in (404, 400) and GEMINI_EMBEDDING_MODEL != "embedding-001":
+            # Retry with legacy embedding-001
+            retry_url = f"https://generativelanguage.googleapis.com/v1beta/models/embedding-001:embedContent?key={GEMINI_API_KEY}"
+            retry_payload = {
+                "model": "models/embedding-001",
+                "content": {"parts": [{"text": cleaned_text[:2048]}]}
+            }
+            res2 = _http_client.post(retry_url, json=retry_payload)
+            if res2.status_code == 200:
+                vals = res2.json().get("embedding", {}).get("values", [])
+                if vals:
+                    return vals[:EMBEDDING_DIMENSION] if len(vals) >= EMBEDDING_DIMENSION else vals + [0.0]*(EMBEDDING_DIMENSION-len(vals))
+            return _generate_fallback_vector(cleaned_text, EMBEDDING_DIMENSION)
         else:
-            logger.error(f"Gemini Embedding API returned HTTP {response.status_code}: {response.text}")
+            logger.error(f"Gemini Embedding API returned HTTP {response.status_code}: {response.text[:120]}")
             return _generate_fallback_vector(cleaned_text, EMBEDDING_DIMENSION)
     except Exception as e:
         logger.error(f"Gemini embedding generation failed: {e}")

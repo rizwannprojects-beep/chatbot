@@ -17,8 +17,8 @@ load_dotenv()
 
 logger = logging.getLogger("campusai.vector_search")
 
-DEFAULT_TOP_K = int(os.getenv("RAG_TOP_K", "6"))
-DEFAULT_SIMILARITY_THRESHOLD = float(os.getenv("RAG_SIMILARITY_THRESHOLD", "0.05"))
+DEFAULT_TOP_K = int(os.getenv("RAG_TOP_K", "4"))
+DEFAULT_SIMILARITY_THRESHOLD = float(os.getenv("RAG_SIMILARITY_THRESHOLD", "0.20"))
 
 # ─────────────────────────────────────────────
 # In-process VECTOR CACHE: stores pre-parsed chunk vectors in RAM so we
@@ -62,7 +62,6 @@ def _warm_vector_cache() -> None:
                 vec = json.loads(emb_str)
                 if not vec or len(vec) < 10:
                     continue
-                # Pre-compute magnitude so cosine sim is just dot product / const
                 mag = math.sqrt(sum(x * x for x in vec))
                 if mag == 0:
                     continue
@@ -97,10 +96,6 @@ def invalidate_vector_cache() -> None:
     logger.info("Vector cache invalidated — will reload on next search.")
 
 def cosine_similarity(v1: List[float], v2: List[float]) -> float:
-    """
-    Calculates cosine similarity score between two float vectors.
-    Returns float value between 0.0 and 1.0.
-    """
     if not v1 or not v2 or len(v1) != len(v2):
         return 0.0
     dot_product = sum(a * b for a, b in zip(v1, v2))
@@ -112,10 +107,6 @@ def cosine_similarity(v1: List[float], v2: List[float]) -> float:
     return max(0.0, min(1.0, float(similarity)))
 
 def _fast_cosine(query_vec: List[float], query_mag: float, chunk: Dict) -> float:
-    """
-    Fast cosine similarity using pre-computed chunk magnitude.
-    Only one dot-product loop needed per comparison.
-    """
     dot = sum(a * b for a, b in zip(query_vec, chunk["_vec"]))
     denom = query_mag * chunk["_mag"]
     if denom == 0:
@@ -128,8 +119,9 @@ def search_similar_chunks(
     similarity_threshold: Optional[float] = None
 ) -> List[Dict[str, Any]]:
     """
-    Performs ultra-fast cosine similarity search over in-RAM vector cache.
-    Falls back to Supabase pgvector if configured. Results are cached by query hash.
+    Performs Question-Aware hybrid vector search over in-RAM cache.
+    Applies topic category boosting, keyword matching, topic mismatch penalization,
+    deduplication, and strict score thresholding.
     """
     if not query or not query.strip():
         return []
@@ -137,13 +129,15 @@ def search_similar_chunks(
     limit = top_k if top_k is not None else DEFAULT_TOP_K
     threshold = similarity_threshold if similarity_threshold is not None else DEFAULT_SIMILARITY_THRESHOLD
 
-    # ── Cache key for search result (not query cache, which is in rag_service) ──
     q_hash = hashlib.md5(f"{query.strip().lower()}{limit}{threshold}".encode()).hexdigest()
     if q_hash in _SEARCH_RESULT_CACHE:
-        logger.debug(f"Search result cache HIT for query hash {q_hash[:8]}")
         return _SEARCH_RESULT_CACHE[q_hash]
 
-    # ── Generate Query Embedding (also LRU-cached per text) ──
+    from app.rag.intent_service import analyze_query_intent
+    intent = analyze_query_intent(query)
+    if intent["is_ambiguous"]:
+        return []
+
     query_vector = generate_embedding(query.strip())
     if not query_vector or len(query_vector) < 10:
         logger.warning("Failed to generate valid query embedding.")
@@ -153,40 +147,68 @@ def search_similar_chunks(
     if query_mag == 0:
         return []
 
-    # ── Try Supabase pgvector first (cloud, optimised index) ──
-    supabase = get_supabase_admin_client() or get_supabase_client()
-    if supabase:
-        try:
-            res = supabase.rpc(
-                "match_document_chunks",
-                {
-                    "query_embedding": query_vector,
-                    "match_threshold": threshold,
-                    "match_count": limit
-                }
-            ).execute()
-            if res.data:
-                _cache_search_result(q_hash, res.data)
-                return res.data
-        except Exception as e:
-            logger.warning(f"Supabase pgvector search failed ({e}); using RAM cache fallback.")
-
-    # ── Fast in-RAM cosine similarity search ──
     _warm_vector_cache()
-
     if not _VECTOR_CACHE:
-        logger.warning("Vector cache is empty — no chunks indexed yet.")
         return []
 
-    scored = []
+    scored_chunks = []
+    target_cat = intent.get("target_category")
+    keywords = intent.get("keywords", set())
+    title_kws = intent.get("title_keywords", [])
+
     for chunk in _VECTOR_CACHE:
         sim = _fast_cosine(query_vector, query_mag, chunk)
-        if sim >= threshold:
-            scored.append((sim, chunk))
+        
+        # Calculate hybrid boost / penalty
+        category_boost = 0.0
+        keyword_boost = 0.0
+        mismatch_penalty = 0.0
 
-    # Sort descending by similarity, take top_k
-    scored.sort(key=lambda x: x[0], reverse=True)
-    top = scored[:limit]
+        chunk_cat = chunk.get("document_category", "")
+        chunk_title = chunk.get("document_title", "").lower()
+        chunk_content = chunk.get("content", "").lower()
+
+        # 1. Category boost
+        if target_cat and chunk_cat.lower() == target_cat.lower():
+            category_boost = 0.15
+        elif target_cat and chunk_cat:
+            mismatch_penalty = 0.20  # Penalize unrelated categories when strong domain intent exists
+
+        # 2. Keyword boost
+        matching_kws = sum(1 for kw in keywords if kw in chunk_content or kw in chunk_title)
+        if matching_kws > 0:
+            keyword_boost = min(0.20, matching_kws * 0.05)
+
+        for tk in title_kws:
+            if tk in chunk_title:
+                keyword_boost += 0.08
+
+        # Composite score
+        composite_score = sim + category_boost + keyword_boost - mismatch_penalty
+
+        if composite_score >= threshold or (sim >= 0.45 and mismatch_penalty == 0):
+            scored_chunks.append((composite_score, sim, chunk))
+
+    # Sort by composite score descending
+    scored_chunks.sort(key=lambda x: x[0], reverse=True)
+
+    # Deduplicate near-identical chunks
+    unique_chunks = []
+    seen_contents = []
+
+    for score, sim, c in scored_chunks:
+        c_text = c["content"].strip()
+        # Simple overlap check to avoid returning duplicate snippets
+        is_dup = False
+        for seen in seen_contents:
+            if c_text[:100] == seen[:100] or (len(c_text) > 50 and c_text[:60] in seen):
+                is_dup = True
+                break
+        if not is_dup:
+            seen_contents.append(c_text)
+            unique_chunks.append((score, sim, c))
+            if len(unique_chunks) >= limit:
+                break
 
     results = [
         {
@@ -196,57 +218,18 @@ def search_similar_chunks(
             "content": c["content"],
             "page_number": c["page_number"],
             "metadata": c["metadata"],
-            "similarity": round(sim, 4),
+            "similarity": round(max(sim, score), 4),
             "document_title": c["document_title"],
             "document_category": c["document_category"],
             "file_name": c["file_name"],
         }
-        for sim, c in top
+        for score, sim, c in unique_chunks
     ]
-
-    # ── Hybrid Fallback: Keyword search over in-RAM chunks if vector sim returned 0 ──
-    if not results and _VECTOR_CACHE:
-        words = [w for w in re.findall(r"\w+", query.lower()) if len(w) > 2 and w not in ("what", "when", "where", "with", "from", "that", "this", "your")]
-        matched_chunks = []
-        for c in _VECTOR_CACHE:
-            content_lower = c["content"].lower()
-            doc_title_lower = c["document_title"].lower()
-            cat_lower = c["document_category"].lower()
-            
-            score = 0
-            for w in words:
-                if w in doc_title_lower:
-                    score += 5
-                if w in cat_lower:
-                    score += 4
-                if w in content_lower:
-                    score += 2
-            
-            if score > 0:
-                matched_chunks.append((score, c))
-        
-        matched_chunks.sort(key=lambda x: x[0], reverse=True)
-        results = [
-            {
-                "id": c["id"],
-                "document_id": c["document_id"],
-                "chunk_index": c["chunk_index"],
-                "content": c["content"],
-                "page_number": c["page_number"],
-                "metadata": c["metadata"],
-                "similarity": round(min(0.95, 0.5 + score * 0.1), 4),
-                "document_title": c["document_title"],
-                "document_category": c["document_category"],
-                "file_name": c["file_name"],
-            }
-            for score, c in matched_chunks[:limit]
-        ]
 
     _cache_search_result(q_hash, results)
     return results
 
 def _cache_search_result(key: str, data: List[Dict]) -> None:
-    """LRU-style eviction: drop oldest 25% when cache is full."""
     global _SEARCH_RESULT_CACHE
     if len(_SEARCH_RESULT_CACHE) >= _SEARCH_RESULT_CACHE_MAX:
         keys = list(_SEARCH_RESULT_CACHE.keys())

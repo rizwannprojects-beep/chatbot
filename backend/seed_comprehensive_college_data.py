@@ -505,7 +505,7 @@ def seed_database():
     print("=" * 65)
 
     # 1. Seed Local SQLite Database
-    conn = sqlite3.connect(LOCAL_DB_PATH)
+    conn = sqlite3.connect(LOCAL_DB_PATH, timeout=20.0)
     cursor = conn.cursor()
 
     cursor.execute("DELETE FROM document_chunks")

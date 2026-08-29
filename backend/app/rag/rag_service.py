@@ -187,11 +187,15 @@ def execute_rag_pipeline(
         answer = generate_grounded_answer(prompt, context_snippets, question=cleaned)
         logger.info(f"LLM generation: {(time.perf_counter()-t_llm)*1000:.1f}ms")
     else:
-        # Fallback when official documents do not contain relevant details
-        answer = (
-            f"I searched the official campus knowledge base, but I couldn't find specific details regarding **\"{cleaned}\"**.\n\n"
-            "Please check with the Campus Support Desk or try rephrasing your question."
+        # Generate intelligent, structured, comprehensive response for any query or keyword
+        fallback_prompt = (
+            f"{SYSTEM_PROMPT}\n\n"
+            f"=== STUDENT QUESTION ===\n{cleaned}\n\n"
+            f"Provide a clear, accurate, structured, and comprehensive answer detailing the policies, rules, placement statistics, procedures, or guidelines for this topic."
         )
+        t_llm = time.perf_counter()
+        answer = generate_grounded_answer(fallback_prompt, [], question=cleaned)
+        logger.info(f"Fallback LLM generation: {(time.perf_counter()-t_llm)*1000:.1f}ms")
         sources = []
 
     total_ms = (time.perf_counter() - t0) * 1000

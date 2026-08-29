@@ -5,20 +5,39 @@ from typing import Dict, Any, Set, List, Optional
 #  DOMAIN CATEGORIES & KEYWORD MAPS
 # ══════════════════════════════════════════════════════════════
 
+TYPO_MAP = {
+    "libarary": "library",
+    "libraray": "library",
+    "libray": "library",
+    "libry": "library",
+    "exm": "exams",
+    "exms": "exams",
+    "exmes": "exams",
+    "placeing": "placement",
+    "placment": "placement",
+    "placementss": "placements",
+    "attendence": "attendance",
+    "atendance": "attendance",
+    "hostle": "hostel",
+    "hostal": "hostel",
+    "scholorship": "scholarship",
+    "sholarship": "scholarship",
+}
+
 DOMAIN_CATEGORIES = {
     "attendance": {
         "category": "Attendance & Leave",
-        "keywords": {"attendance", "condonation", "shortage", "absent", "leave", "duty leave", "75%", "65%", "fe grade", "medical leave", "shortage of attendance"},
+        "keywords": {"attendance", "attendence", "condonation", "shortage", "absent", "leave", "duty leave", "75%", "65%", "fe grade", "medical leave", "shortage of attendance"},
         "title_keywords": ["attendance", "leave"]
     },
     "exams": {
         "category": "Examinations",
-        "keywords": {"exam", "exams", "examination", "examinations", "end-sem", "series test", "internal marks", "revaluation", "scrutiny", "supplementary", "pass mark", "passing marks", "cgpa", "sgpa", "grading", "credits"},
+        "keywords": {"exam", "exams", "exm", "examination", "examinations", "end-sem", "series test", "internal marks", "revaluation", "scrutiny", "supplementary", "pass mark", "passing marks", "cgpa", "sgpa", "grading", "credits"},
         "title_keywords": ["examination", "evaluation", "grading", "academic regulations"]
     },
     "hostel": {
         "category": "Hostel & Housing",
-        "keywords": {"hostel", "curfew", "gate pass", "warden", "mess", "gate close", "night leave", "out-pass", "quiet hours", "room", "housing"},
+        "keywords": {"hostel", "hostle", "curfew", "gate pass", "warden", "mess", "gate close", "night leave", "out-pass", "quiet hours", "room", "housing"},
         "title_keywords": ["hostel", "housing", "residence"]
     },
     "scholarships": {
@@ -29,22 +48,22 @@ DOMAIN_CATEGORIES = {
     "facilities": {
         "category": "Campus Facilities",
         "keywords": {"facility", "facilities", "canteen", "sports", "gym", "auditorium", "health center", "bus", "transport", "bank", "atm", "amenities"},
-        "title_keywords": ["facilities", "infrastructure", "campus"]
+        "title_keywords": ["facilities", "infrastructure", "campus", "services", "canteen", "transportation"]
     },
     "library": {
-        "category": "Library & IT",
-        "keywords": {"library", "book", "books", "borrowing", "fine", "wifi", "internet", "lab", "computer", "it guidelines"},
-        "title_keywords": ["library", "it", "wifi"]
+        "category": "Library Services",
+        "keywords": {"library", "libarary", "libraray", "book", "books", "borrowing", "fine", "wifi", "internet", "lab", "computer", "it guidelines", "digital library"},
+        "title_keywords": ["library", "book", "circulation"]
     },
     "admissions": {
-        "category": "Admissions & Eligibility",
+        "category": "Admissions",
         "keywords": {"admission", "admissions", "eligibility", "apply", "keam", "nri", "seat", "cutoff", "b.tech", "certificate", "certificates"},
-        "title_keywords": ["admissions", "eligibility"]
+        "title_keywords": ["admissions", "eligibility", "process"]
     },
     "placements": {
-        "category": "Placements & Internships",
-        "keywords": {"placement", "placements", "tpc", "company", "companies", "package", "salary", "internship", "recruitment", "interview"},
-        "title_keywords": ["placement", "recruitment"]
+        "category": "Placements",
+        "keywords": {"placement", "placements", "tpc", "company", "companies", "package", "salary", "internship", "recruitment", "interview", "statistics", "stats", "highest package", "average package", "recruiters", "placement statistics", "placement rate", "placement report"},
+        "title_keywords": ["placement", "recruitment", "training"]
     }
 }
 

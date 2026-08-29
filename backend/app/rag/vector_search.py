@@ -18,7 +18,7 @@ load_dotenv()
 logger = logging.getLogger("campusai.vector_search")
 
 DEFAULT_TOP_K = int(os.getenv("RAG_TOP_K", "4"))
-DEFAULT_SIMILARITY_THRESHOLD = float(os.getenv("RAG_SIMILARITY_THRESHOLD", "0.20"))
+DEFAULT_SIMILARITY_THRESHOLD = float(os.getenv("RAG_SIMILARITY_THRESHOLD", "0.10"))
 
 # ─────────────────────────────────────────────
 # In-process VECTOR CACHE: stores pre-parsed chunk vectors in RAM so we
@@ -168,16 +168,16 @@ def search_similar_chunks(
         chunk_title = chunk.get("document_title", "").lower()
         chunk_content = chunk.get("content", "").lower()
 
-        # 1. Category boost
-        if target_cat and chunk_cat.lower() == target_cat.lower():
-            category_boost = 0.15
-        elif target_cat and chunk_cat:
-            mismatch_penalty = 0.20  # Penalize unrelated categories when strong domain intent exists
+        # 1. Category boost (flexible substring matching)
+        if target_cat and (chunk_cat.lower() in target_cat.lower() or target_cat.lower() in chunk_cat.lower()):
+            category_boost = 0.20
+        elif target_cat and chunk_cat and not (chunk_cat.lower() in target_cat.lower() or target_cat.lower() in chunk_cat.lower()):
+            mismatch_penalty = 0.10  # Mild penalty for mismatched categories
 
         # 2. Keyword boost
         matching_kws = sum(1 for kw in keywords if kw in chunk_content or kw in chunk_title)
         if matching_kws > 0:
-            keyword_boost = min(0.20, matching_kws * 0.05)
+            keyword_boost += min(0.25, matching_kws * 0.08)
 
         for tk in title_kws:
             if tk in chunk_title:

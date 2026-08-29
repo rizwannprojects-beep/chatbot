@@ -146,6 +146,7 @@ def execute_rag_pipeline(
             return _save_and_return(conversation_id, answer, [], t0)
 
         # 3. Vector search
+        top_k = int(os.getenv("RAG_TOP_K", "4"))
         raw_thresh = float(os.getenv("RAG_SIMILARITY_THRESHOLD", "0.10"))
         threshold = min(0.10, raw_thresh)
 

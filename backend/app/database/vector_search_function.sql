@@ -3,7 +3,7 @@
 
 CREATE OR REPLACE FUNCTION match_document_chunks (
   query_embedding vector(768),
-  match_threshold float DEFAULT 0.7,
+  match_threshold float DEFAULT 0.10,
   match_count int DEFAULT 4
 )
 RETURNS TABLE (

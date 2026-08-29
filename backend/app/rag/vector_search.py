@@ -33,12 +33,17 @@ _SEARCH_RESULT_CACHE_MAX = 512
 
 def _warm_vector_cache() -> None:
     """
-    Pre-loads all chunk vectors from SQLite into RAM on first call.
+    Pre-loads all chunk vectors into RAM on first call.
+    First tries local SQLite; if SQLite has 0 chunks, loads from Supabase Cloud Database.
     Subsequent searches use pure in-memory NumPy-free cosine similarity — no I/O.
     """
     global _VECTOR_CACHE, _VECTOR_CACHE_LOADED
-    if _VECTOR_CACHE_LOADED:
+    if _VECTOR_CACHE_LOADED and len(_VECTOR_CACHE) > 0:
         return
+
+    cache = []
+
+    # 1. Try loading from local SQLite DB
     try:
         conn = sqlite3.connect(LOCAL_DB_PATH, check_same_thread=False)
         cursor = conn.cursor()
@@ -55,11 +60,10 @@ def _warm_vector_cache() -> None:
         rows = cursor.fetchall()
         conn.close()
 
-        cache = []
         for r in rows:
             chunk_id, doc_id, chunk_idx, content, page_num, emb_str, meta_str, doc_title, doc_cat, file_name = r
             try:
-                vec = json.loads(emb_str)
+                vec = json.loads(emb_str) if isinstance(emb_str, str) else emb_str
                 if not vec or len(vec) < 10:
                     continue
                 mag = math.sqrt(sum(x * x for x in vec))
@@ -71,7 +75,7 @@ def _warm_vector_cache() -> None:
                     "chunk_index": chunk_idx,
                     "content": content,
                     "page_number": page_num,
-                    "metadata": json.loads(meta_str) if meta_str else {},
+                    "metadata": json.loads(meta_str) if isinstance(meta_str, str) and meta_str else (meta_str or {}),
                     "document_title": doc_title,
                     "document_category": doc_cat,
                     "file_name": file_name,
@@ -80,12 +84,49 @@ def _warm_vector_cache() -> None:
                 })
             except Exception:
                 continue
-
-        _VECTOR_CACHE = cache
-        _VECTOR_CACHE_LOADED = True
-        logger.info(f"Vector cache warmed: {len(_VECTOR_CACHE)} chunks loaded into RAM.")
     except Exception as e:
-        logger.error(f"Vector cache warming failed: {e}")
+        logger.warning(f"Local SQLite vector cache load failed: {e}")
+
+    # 2. If SQLite was empty (e.g. running on Render container), load from Supabase Cloud Database!
+    if not cache:
+        try:
+            sp = get_supabase_admin_client() or get_supabase_client()
+            docs_res = sp.table("documents").select("id, title, category, file_name").execute()
+            docs_map = {d["id"]: d for d in (docs_res.data or [])}
+
+            chunks_res = sp.table("document_chunks").select("id, document_id, chunk_index, content, page_number, embedding, metadata").execute()
+            for c in (chunks_res.data or []):
+                try:
+                    emb = c.get("embedding")
+                    vec = json.loads(emb) if isinstance(emb, str) else emb
+                    if not vec or len(vec) < 10:
+                        continue
+                    mag = math.sqrt(sum(x * x for x in vec))
+                    if mag == 0:
+                        continue
+                    doc_info = docs_map.get(c["document_id"], {})
+                    cache.append({
+                        "id": c["id"],
+                        "document_id": c["document_id"],
+                        "chunk_index": c.get("chunk_index", 0),
+                        "content": c["content"],
+                        "page_number": c.get("page_number", 1),
+                        "metadata": c.get("metadata") or {},
+                        "document_title": doc_info.get("title", "Official Campus Document"),
+                        "document_category": doc_info.get("category", "General"),
+                        "file_name": doc_info.get("file_name", "document.pdf"),
+                        "_vec": vec,
+                        "_mag": mag,
+                    })
+                except Exception:
+                    continue
+            logger.info(f"Loaded {len(cache)} chunks into RAM from Supabase Cloud Database.")
+        except Exception as e:
+            logger.error(f"Supabase Cloud vector cache load failed: {e}")
+
+    _VECTOR_CACHE = cache
+    _VECTOR_CACHE_LOADED = True
+    logger.info(f"Vector cache warmed: {len(_VECTOR_CACHE)} total chunks loaded into RAM.")
 
 def invalidate_vector_cache() -> None:
     """Call this after new documents are ingested so cache refreshes."""

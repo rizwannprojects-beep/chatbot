@@ -546,10 +546,61 @@ def seed_database():
     conn.commit()
     conn.close()
 
+    # 2. Seed Supabase Cloud Database if configured
+    try:
+        from app.database.supabase import get_supabase_admin_client
+        sp = get_supabase_admin_client()
+        print("\nCleaned old documents & chunks from Supabase Cloud Database...")
+        sp.table("document_chunks").delete().neq("id", "00000000-0000-0000-0000-000000000000").execute()
+        sp.table("documents").delete().neq("id", "00000000-0000-0000-0000-000000000000").execute()
+
+        sp_docs = []
+        sp_chunks = []
+
+        # Read back from SQLite to ensure exact consistency
+        cursor = sqlite3.connect(LOCAL_DB_PATH).cursor()
+        cursor.execute("SELECT id, title, description, category, file_name, status, created_at, updated_at FROM documents")
+        for row in cursor.fetchall():
+            sp_docs.append({
+                "id": row[0],
+                "title": row[1],
+                "description": row[2],
+                "category": row[3],
+                "file_name": row[4],
+                "status": row[5],
+                "created_at": row[6],
+                "updated_at": row[7]
+            })
+
+        cursor.execute("SELECT id, document_id, chunk_index, content, page_number, embedding, metadata, created_at FROM document_chunks")
+        for row in cursor.fetchall():
+            sp_chunks.append({
+                "id": row[0],
+                "document_id": row[1],
+                "chunk_index": row[2],
+                "content": row[3],
+                "page_number": row[4],
+                "embedding": json.loads(row[5]),
+                "metadata": json.loads(row[6]),
+                "created_at": row[7]
+            })
+
+        if sp_docs:
+            sp.table("documents").insert(sp_docs).execute()
+            print(f"Ingested {len(sp_docs)} Documents into Supabase Cloud Database.")
+        if sp_chunks:
+            # Insert chunks in batches of 10
+            for i in range(0, len(sp_chunks), 10):
+                sp.table("document_chunks").insert(sp_chunks[i:i+10]).execute()
+            print(f"Ingested {len(sp_chunks)} Chunks into Supabase Cloud Database.")
+
+    except Exception as e:
+        print(f"\n[WARNING] Could not seed Supabase Cloud Database: {e}")
+
     invalidate_vector_cache()
 
     print("\n" + "=" * 65)
-    print(f" SUCCESS: Ingested {len(DOCUMENTS)} Documents & {total_chunks} Chunks into Local SQLite DB!")
+    print(f" SUCCESS: Ingested {len(DOCUMENTS)} Documents & {total_chunks} Chunks into SQLite & Supabase!")
     print("=" * 65)
 
 if __name__ == "__main__":

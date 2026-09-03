@@ -10,6 +10,9 @@ import json
 import logging
 from datetime import datetime, timezone
 
+if sys.stdout and hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+
 sys.path.insert(0, os.path.dirname(__file__))
 
 from app.database.supabase import get_supabase_admin_client, get_supabase_client
